@@ -141,7 +141,7 @@ const App: React.FC = () => {
       case 'dashboard':
         return (
           <Dashboard
-            user={user}
+            user={user || undefined}
             theme={theme}
           />
         );
@@ -266,7 +266,7 @@ const App: React.FC = () => {
   // Se estiver logado, mostrar o layout com navegação
   return (
     <Layout
-      user={user}
+      user={user || undefined}
       theme={theme}
       onThemeToggle={handleThemeToggle}
       onLogout={handleLogout}

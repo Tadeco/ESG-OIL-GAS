@@ -45,7 +45,7 @@ export interface Finding {
 export interface Recommendation {
   id: string;
   category: 'ENVIRONMENTAL' | 'SOCIAL' | 'GOVERNANCE';
-  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  priority: 'HIGH' | 'MEDIUM' | 'LOW' | 'CRITICAL';
   title: string;
   description: string;
   action: string;

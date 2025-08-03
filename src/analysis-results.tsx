@@ -6,11 +6,9 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
-  TrendingUp,
-  TrendingDown,
+  X,
   Minus,
   BarChart3,
-  FileText,
   Shield,
   Leaf,
   Users,
@@ -18,13 +16,7 @@ import {
   Award,
   Target,
   Calendar,
-  Building2,
-  Globe,
   Info,
-  ExternalLink,
-  Filter,
-  Search,
-  Eye,
   Clock
 } from 'lucide-react';
 import { mockApi, ESGAnalysisResult } from './mock-api';
