@@ -100,10 +100,12 @@ class MockApiService {
 
   // Simula upload de contrato
   async uploadContract(upload: ContractUpload): Promise<{ contractId: string; status: string }> {
+    console.log('MockAPI: Iniciando upload do contrato:', upload.file.name);
     await this.delay(2000);
     
     // Simula progresso de upload
     const contractId = `contract-${Date.now()}`;
+    console.log('MockAPI: Upload concluído, contractId:', contractId);
     
     return {
       contractId,
@@ -113,6 +115,7 @@ class MockApiService {
 
   // Simula análise ESG do contrato
   async analyzeContract(contractId: string): Promise<ESGAnalysisResult> {
+    console.log('MockAPI: Iniciando análise ESG para contractId:', contractId);
     await this.delay(3000);
 
     // Dados simulados baseados em cenários reais do setor
@@ -361,6 +364,7 @@ class MockApiService {
       }
     };
 
+    console.log('MockAPI: Análise ESG concluída, retornando resultado:', mockResult);
     return mockResult;
   }
 

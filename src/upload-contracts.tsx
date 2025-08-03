@@ -30,6 +30,7 @@ interface UploadedFile {
   progress: number;
   contractId?: string;
   result?: any;
+  error?: string;
 }
 
 const UploadContracts: React.FC<UploadContractsProps> = ({
@@ -92,6 +93,8 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
       setFiles(prev => [...prev, uploadedFile]);
 
       try {
+        console.log('Iniciando upload do arquivo:', file.name);
+        
         // Simulate upload progress
         for (let progress = 0; progress <= 100; progress += 10) {
           await new Promise(resolve => setTimeout(resolve, 100));
@@ -100,8 +103,11 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
           ));
         }
 
+        console.log('Upload concluído, iniciando análise...');
+
         // Upload to mock API
         const uploadResult = await mockApi.uploadContract({ file, metadata });
+        console.log('Upload result:', uploadResult);
         
         setFiles(prev => prev.map(f => 
           f.id === fileId ? { 
@@ -113,7 +119,9 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
         ));
 
         // Start analysis
+        console.log('Iniciando análise ESG...');
         const analysisResult = await mockApi.analyzeContract(uploadResult.contractId);
+        console.log('Análise concluída:', analysisResult);
         
         setFiles(prev => prev.map(f => 
           f.id === fileId ? { 
@@ -123,9 +131,16 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
           } : f
         ));
 
+        console.log('Processo completo para arquivo:', file.name);
+
       } catch (error) {
+        console.error('Erro no upload/análise:', error);
         setFiles(prev => prev.map(f => 
-          f.id === fileId ? { ...f, status: 'error' } : f
+          f.id === fileId ? { 
+            ...f, 
+            status: 'error',
+            error: error instanceof Error ? error.message : 'Erro desconhecido'
+          } : f
         ));
       }
     }
@@ -138,8 +153,12 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
 
   // View analysis results
   const viewResults = (file: UploadedFile) => {
-    if (file.result) {
-      onNavigate(`/analysis/${file.contractId}`);
+    console.log('Tentando ver resultados para arquivo:', file);
+    if (file.result && file.contractId) {
+      console.log('Navegando para análise:', `/analysis/${file.contractId}`);
+      onNavigate(`analysis`); // Simplificado para testar se a navegação funciona
+    } else {
+      console.log('Arquivo não tem resultados ou contractId:', file);
     }
   };
 
@@ -373,6 +392,11 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
                             'text-red-600 dark:text-red-400'
                           }`}>
                             Score ESG: {file.result.overallScore}/100
+                          </p>
+                        )}
+                        {file.status === 'error' && file.error && (
+                          <p className="text-sm text-red-600 dark:text-red-400">
+                            Erro: {file.error}
                           </p>
                         )}
                       </div>
