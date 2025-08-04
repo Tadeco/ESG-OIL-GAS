@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Upload,
   FileText,
@@ -44,6 +44,20 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
     region: '',
     operator: ''
   });
+
+  // Debug: monitorar mudanças no estado dos arquivos
+  useEffect(() => {
+    console.log('Estado dos arquivos mudou:', files);
+    files.forEach((file, index) => {
+      console.log(`Arquivo ${index + 1}:`, {
+        nome: file.file.name,
+        status: file.status,
+        contractId: file.contractId,
+        temResultado: !!file.result,
+        resultado: file.result
+      });
+    });
+  }, [files]);
 
   // Handle drag events
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -123,13 +137,17 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
         const analysisResult = await mockApi.analyzeContract(uploadResult.contractId);
         console.log('Análise concluída:', analysisResult);
         
-        setFiles(prev => prev.map(f => 
-          f.id === fileId ? { 
-            ...f, 
-            status: 'completed',
-            result: analysisResult
-          } : f
-        ));
+        setFiles(prev => {
+          const newFiles = prev.map(f => 
+            f.id === fileId ? { 
+              ...f, 
+              status: 'completed',
+              result: analysisResult
+            } : f
+          );
+          console.log('Estado atualizado - arquivos:', newFiles);
+          return newFiles;
+        });
 
         console.log('Processo completo para arquivo:', file.name);
 
@@ -405,13 +423,27 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
 
                   <div className="flex items-center gap-2">
                     {file.status === 'completed' && (
-                      <button
-                        onClick={() => viewResults(file)}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-                      >
-                        <Eye className="w-4 h-4" />
-                        Ver Análise
-                      </button>
+                      <>
+                        <button
+                          onClick={() => viewResults(file)}
+                          className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                        >
+                          <Eye className="w-4 h-4" />
+                          Ver Análise
+                        </button>
+                        {/* Debug button - temporary */}
+                        <button
+                          onClick={() => {
+                            console.log('DEBUG - Arquivo completo:', file);
+                            console.log('DEBUG - Tem resultado?', !!file.result);
+                            console.log('DEBUG - Resultado completo:', file.result);
+                            alert(`Arquivo: ${file.file.name}\nStatus: ${file.status}\nTem resultado: ${!!file.result}\nContractId: ${file.contractId}`);
+                          }}
+                          className="px-2 py-1 bg-blue-500 text-white text-xs rounded"
+                        >
+                          DEBUG
+                        </button>
+                      </>
                     )}
 
                     <button
@@ -440,13 +472,14 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
                 )}
 
                 {/* Quick Results Preview */}
-                {file.result && (
+                {file.result ? (
                   <div className="mt-4 grid grid-cols-3 gap-4">
+                    {console.log('Renderizando resultados para arquivo:', file.file.name, 'Resultado:', file.result)}
                     <div className={`text-center p-3 rounded-lg ${
                       theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
                     }`}>
                       <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                        {file.result.categories.environmental.score}
+                        {file.result.categories?.environmental?.score || 'N/A'}
                       </p>
                       <p className="text-xs text-gray-500">Environmental</p>
                     </div>
@@ -454,7 +487,7 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
                       theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
                     }`}>
                       <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                        {file.result.categories.social.score}
+                        {file.result.categories?.social?.score || 'N/A'}
                       </p>
                       <p className="text-xs text-gray-500">Social</p>
                     </div>
@@ -462,10 +495,17 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
                       theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
                     }`}>
                       <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                        {file.result.categories.governance.score}
+                        {file.result.categories?.governance?.score || 'N/A'}
                       </p>
                       <p className="text-xs text-gray-500">Governance</p>
                     </div>
+                  </div>
+                ) : (
+                  <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                      {console.log('Nenhum resultado encontrado para arquivo:', file.file.name, 'Status:', file.status, 'Result:', file.result)}
+                      ⚠️ Resultados da análise não foram carregados. Status: {file.status}
+                    </p>
                   </div>
                 )}
               </div>
