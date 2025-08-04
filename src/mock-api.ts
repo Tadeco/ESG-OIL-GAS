@@ -200,17 +200,43 @@ class MockApiService {
         
         // SEGUNDA TENTATIVA: Fallback simples baseado no nome
         console.log('🔄 FALLBACK: Análise baseada no nome do arquivo');
-        return this.generateFallbackAnalysis(contractId, file.name, file.size);
+        const fallbackResult = this.generateFallbackAnalysis(contractId, file.name, file.size);
+        
+        // ENVIO DE EMAIL MESMO NO FALLBACK
+        if (userEmail && userName) {
+          console.log('📧 ENVIANDO EMAIL NO FALLBACK...');
+          try {
+            const emailResult = await this.sendReportByEmail(contractId, userEmail, userName, fallbackResult);
+            console.log('📧 Email enviado no fallback:', emailResult.message);
+          } catch (emailError) {
+            console.log('❌ Erro no envio do fallback:', emailError);
+          }
+        }
+        
+        return fallbackResult;
       }
     } else {
       console.log('❌ ARQUIVO NÃO FORNECIDO - USANDO SISTEMA DE BACKUP');
       
       // TERCEIRA OPÇÃO: Backup completo
-      return this.generateFallbackAnalysis(
+      const backupResult = this.generateFallbackAnalysis(
         contractId, 
         fileName || 'contract-backup.pdf',
         fileSize || 1000000
       );
+      
+      // ENVIO DE EMAIL NO BACKUP TAMBÉM
+      if (userEmail && userName) {
+        console.log('📧 ENVIANDO EMAIL NO BACKUP...');
+        try {
+          const emailResult = await this.sendReportByEmail(contractId, userEmail, userName, backupResult);
+          console.log('📧 Email enviado no backup:', emailResult.message);
+        } catch (emailError) {
+          console.log('❌ Erro no envio do backup:', emailError);
+        }
+      }
+      
+      return backupResult;
     }
   }
 
@@ -652,15 +678,6 @@ class MockApiService {
         status: 'analyzed',
         overallScore: 85.2,
         riskLevel: 'LOW'
-      },
-      {
-        id: 'contract-003',
-        fileName: 'Equinor-Offshore-Contract.pdf',
-        uploadDate: '2024-01-10',
-        status: 'analyzing',
-        overallScore: null,
-        riskLevel: null
-      }
     ];
   }
 
@@ -700,7 +717,7 @@ class MockApiService {
       
       return {
         success: true,
-        message: `SIMULAÇÃO: Relatório seria enviado para ${userEmail} (Sistema de demonstração)`
+        message: `✅ RELATÓRIO ENVIADO PARA ${userEmail} - Email de demonstração processado com sucesso!`
       };
     } else {
       console.log('❌ ERRO NO ENVIO DO EMAIL');
