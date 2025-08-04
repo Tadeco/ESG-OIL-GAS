@@ -212,71 +212,71 @@ const App: React.FC = () => {
               </div>
               
               {(() => {
-                // DEBUG: Forçar reload dos dados toda vez que a página renderizar
-                console.log('🔄 RENDERIZANDO SEÇÃO DE CONTRATOS - REFRESH KEY:', contractsRefreshKey);
+                // SISTEMA ROBUSTO DE CARREGAMENTO COM DEBUG COMPLETO
+                console.log('🔄'.repeat(30));
+                console.log('🔄 CARREGANDO CONTRATOS - SISTEMA ROBUSTO');
+                console.log('🔄'.repeat(30));
                 
-                // Carregar TODOS os contratos de todas as fontes
-                const sessionFiles = JSON.parse(sessionStorage.getItem('uploaded-files') || '[]');
-                const sessionResults = JSON.parse(sessionStorage.getItem('esg-session-results') || '{}');
-                const savedResults = JSON.parse(localStorage.getItem('esg-analysis-results') || '{}');
-                const savedContracts = JSON.parse(localStorage.getItem('all-contracts') || '[]');
+                // 1. TENTAR CARREGAR DE VÁRIAS FONTES
+                let userContracts = [];
                 
-                console.log('📋 CARREGANDO CONTRATOS DE TODAS AS FONTES:');
-                console.log('  📁 Session files:', sessionFiles.length);
-                console.log('  📊 Session results:', Object.keys(sessionResults).length);
-                console.log('  💾 Saved results:', Object.keys(savedResults).length);
-                console.log('  📋 Saved contracts:', savedContracts.length);
+                try {
+                  // Fonte principal
+                  const mainSource = localStorage.getItem('user-contracts');
+                  if (mainSource) {
+                    userContracts = JSON.parse(mainSource);
+                    console.log('📤 FONTE PRINCIPAL - Contratos carregados:', userContracts.length);
+                  }
+                  
+                  // Fonte backup se vazia
+                  if (userContracts.length === 0) {
+                    const backupSource = sessionStorage.getItem('user-contracts-backup');
+                    if (backupSource) {
+                      userContracts = JSON.parse(backupSource);
+                      console.log('📤 FONTE BACKUP - Contratos carregados:', userContracts.length);
+                    }
+                  }
+                  
+                  // Fonte emergencial se ainda vazia
+                  if (userContracts.length === 0) {
+                    const emergencySource = localStorage.getItem('emergency-contract');
+                    if (emergencySource) {
+                      const emergencyContract = JSON.parse(emergencySource);
+                      userContracts = [emergencyContract];
+                      console.log('🚨 FONTE EMERGÊNCIA - Contrato carregado:', emergencyContract.name);
+                    }
+                  }
+                  
+                  console.log('📋 TOTAL DE CONTRATOS DO USUÁRIO CARREGADOS:', userContracts.length);
+                  userContracts.forEach((contract: any, index: number) => {
+                    console.log(`  ${index + 1}. ${contract.name} - Score: ${contract.score} - Status: ${contract.status}`);
+                  });
+                  
+                } catch (error) {
+                  console.error('❌ ERRO AO CARREGAR CONTRATOS DO USUÁRIO:', error);
+                  userContracts = [];
+                }
                 
-                // Combinar resultados de análise
-                const allResults = { ...savedResults, ...sessionResults };
-                
-                // Contratos fixos (exemplo/demonstração)
-                const staticContracts = [
-                  { id: 'contract-001', name: 'Shell-Upstream-Brazil-2024.pdf', status: 'Analisado', score: 78.5, uploadDate: '2024-01-15', isUploaded: false },
-                  { id: 'contract-002', name: 'Petrobras-Partnership-Agreement.pdf', status: 'Analisado', score: 85.2, uploadDate: '2024-01-12', isUploaded: false }
+                // 2. CONTRATOS EXEMPLO (apenas se não houver uploads)
+                const exampleContracts = userContracts.length > 0 ? [] : [
+                  { id: 'example-001', name: 'Shell-Upstream-Brazil-2024.pdf', status: 'Analisado', score: 78.5, uploadDate: '2024-01-15', isUploaded: false },
+                  { id: 'example-002', name: 'Petrobras-Partnership-Agreement.pdf', status: 'Analisado', score: 85.2, uploadDate: '2024-01-12', isUploaded: false }
                 ];
                 
-                // Contratos da sessão atual (uploads recentes)
-                const sessionContracts = sessionFiles.map((fileData: any) => {
-                  const result = allResults[fileData.contractId];
-                  return {
-                    id: fileData.contractId,
-                    name: fileData.name,
-                    status: result ? 'Analisado' : 'Processando',
-                    score: result?.overallScore || fileData.score || null,
-                    uploadDate: fileData.uploadDate,
-                    isUploaded: true,
-                    userEmail: fileData.userEmail,
-                    userName: fileData.userName
-                  };
+                // 3. COMBINAR TODOS OS CONTRATOS (usuário primeiro)
+                const allContracts = [...userContracts, ...exampleContracts].sort((a: any, b: any) => {
+                  // Contratos uploadados primeiro, depois por data
+                  if (a.isUploaded && !b.isUploaded) return -1;
+                  if (!a.isUploaded && b.isUploaded) return 1;
+                  return new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime();
                 });
                 
-                // Contratos salvos no localStorage (persistem entre sessões)
-                const persistentContracts = savedContracts.map((contract: any) => ({
-                  ...contract,
-                  isUploaded: contract.isUploaded || true // Marca como upload se não especificado
-                }));
-                
-                // Combinar TODOS os contratos e remover duplicatas
-                const contractMap = new Map();
-                
-                // Adicionar contratos estáticos
-                staticContracts.forEach(contract => contractMap.set(contract.id, contract));
-                
-                // Adicionar contratos persistentes (sobrescreve duplicatas)
-                persistentContracts.forEach((contract: any) => contractMap.set(contract.id, contract));
-                
-                // Adicionar contratos da sessão (sobrescreve duplicatas com dados mais recentes)
-                sessionContracts.forEach((contract: any) => contractMap.set(contract.id, contract));
-                
-                // Converter para array e ordenar por data
-                const allContracts = Array.from(contractMap.values()).sort((a: any, b: any) => 
-                  new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()
-                );
-                
-                console.log('✅ CONTRATOS FINAIS CARREGADOS:', allContracts.length);
-                console.log('  📤 Uploads do usuário:', allContracts.filter((c: any) => c.isUploaded).length);
-                console.log('  📋 Contratos exemplo:', allContracts.filter((c: any) => !c.isUploaded).length);
+                console.log('✅'.repeat(30));
+                console.log('✅ RESULTADO FINAL DO CARREGAMENTO:');
+                console.log('📤 Contratos do usuário:', userContracts.length);
+                console.log('📋 Contratos exemplo:', exampleContracts.length);
+                console.log('🔗 TOTAL COMBINADO:', allContracts.length);
+                console.log('✅'.repeat(30));
                 
                 if (allContracts.length === 0) {
                   return (
@@ -293,25 +293,55 @@ const App: React.FC = () => {
                         </button>
                       </div>
                       
-                      {/* DEBUG: Mostrar dados dos storages */}
+                      {/* DEBUG MELHORADO COM MAIS INFORMAÇÕES */}
                       <div className={`p-4 rounded-lg border ${
                         theme === 'dark' ? 'bg-red-900/20 border-red-800/30' : 'bg-red-50 border-red-200'
                       }`}>
-                        <h4 className="font-semibold mb-2 text-red-600 dark:text-red-400">🔍 Debug - Dados nos Storages:</h4>
-                        <div className="text-sm space-y-1">
-                          <p>📁 Session Files: {sessionFiles.length} arquivos</p>
-                          <p>📊 Session Results: {Object.keys(sessionResults).length} resultados</p>
-                          <p>💾 Saved Results: {Object.keys(savedResults).length} resultados</p>
-                          <p>📋 Saved Contracts: {savedContracts.length} contratos</p>
-                          <p>🔗 Static Contracts: {staticContracts.length} contratos</p>
-                          {sessionFiles.length > 0 && (
-                            <details>
-                              <summary>Ver arquivos da sessão:</summary>
-                              <pre className="text-xs mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded">
-                                {JSON.stringify(sessionFiles, null, 2)}
-                              </pre>
+                        <h4 className="font-semibold mb-2 text-red-600 dark:text-red-400">🔍 Debug - Sistema Robusto:</h4>
+                        <div className="text-sm space-y-2">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="font-medium">📊 Estatísticas:</p>
+                              <p>📤 Contratos do Usuário: {userContracts.length}</p>
+                              <p>📋 Contratos Exemplo: {exampleContracts.length}</p>
+                              <p>🔗 Total: {allContracts.length}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium">💾 Storage Status:</p>
+                              <p>💾 localStorage: {localStorage.getItem('user-contracts') ? 'OK' : 'Vazio'}</p>
+                              <p>💾 sessionStorage: {sessionStorage.getItem('user-contracts-backup') ? 'OK' : 'Vazio'}</p>
+                              <p>🚨 Emergency: {localStorage.getItem('emergency-contract') ? 'OK' : 'Vazio'}</p>
+                            </div>
+                          </div>
+                          
+                          {userContracts.length > 0 && (
+                            <details className="mt-3">
+                              <summary className="cursor-pointer font-medium text-blue-600 dark:text-blue-400">
+                                🔍 Ver contratos do usuário ({userContracts.length})
+                              </summary>
+                              <div className="mt-2 space-y-1">
+                                {userContracts.map((contract: any, index: number) => (
+                                  <div key={index} className="p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs">
+                                    <strong>{contract.name}</strong> - Score: {contract.score} - Status: {contract.status}
+                                    <br />ID: {contract.id} | Upload: {contract.isUploaded ? 'Sim' : 'Não'}
+                                  </div>
+                                ))}
+                              </div>
                             </details>
                           )}
+                          
+                          <button
+                            onClick={() => {
+                              console.log('🔄 DEBUG MANUAL EXECUTADO');
+                              console.log('localStorage user-contracts:', localStorage.getItem('user-contracts'));
+                              console.log('sessionStorage backup:', sessionStorage.getItem('user-contracts-backup'));
+                              console.log('emergency contract:', localStorage.getItem('emergency-contract'));
+                              alert('Debug executado - veja o console (F12)');
+                            }}
+                            className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                          >
+                            🔍 Debug Manual
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -320,7 +350,7 @@ const App: React.FC = () => {
                 
                 return (
                   <div className="space-y-3">
-                    {allContracts.map((contract) => (
+                    {allContracts.map((contract: any) => (
                       <div key={contract.id} className={`p-4 rounded-lg border ${
                         theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
                       } ${contract.isUploaded ? 'border-l-4 border-l-green-500' : ''}`}>
