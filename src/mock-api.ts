@@ -114,25 +114,18 @@ class MockApiService {
   }
 
   // Simula análise ESG do contrato
-  async analyzeContract(contractId: string): Promise<ESGAnalysisResult> {
-    console.log('MockAPI: Iniciando análise ESG para contractId:', contractId);
+  async analyzeContract(contractId: string, fileName?: string): Promise<ESGAnalysisResult> {
+    console.log('MockAPI: Iniciando análise ESG para contractId:', contractId, 'fileName:', fileName);
     await this.delay(3000);
 
-    // Dados simulados baseados em cenários reais do setor
-    const mockResult: ESGAnalysisResult = {
-      contractId,
-      fileName: 'Shell-Upstream-Contract-2024.pdf',
-      uploadDate: new Date().toISOString(),
-      overallScore: 78.5,
-      confidence: 0.92,
-      categories: {
-        environmental: {
-          score: 85,
-          findings: [
-            {
-              text: 'Compromisso de redução de 40% nas emissões de CO2 até 2030',
-              category: 'Climate Action',
-              confidence: 0.95,
+    // Usar a função simplificada para gerar resultados
+    const { generateSimpleResult } = await import('./mock-api-simple');
+    const mockResult: ESGAnalysisResult = generateSimpleResult(contractId, fileName || 'default-contract.pdf');
+
+    console.log('MockAPI: Análise ESG concluída, retornando resultado:', mockResult);
+    return mockResult;
+  }
+
               sentiment: 'POSITIVE'
             },
             {

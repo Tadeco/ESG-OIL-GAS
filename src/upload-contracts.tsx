@@ -134,7 +134,7 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
 
         // Start analysis
         console.log('Iniciando análise ESG...');
-        const analysisResult = await mockApi.analyzeContract(uploadResult.contractId);
+        const analysisResult = await mockApi.analyzeContract(uploadResult.contractId, file.name);
         console.log('Análise concluída:', analysisResult);
         
         setFiles(prev => {
