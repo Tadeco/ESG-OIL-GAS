@@ -328,14 +328,23 @@ class MockApiService {
     return result;
   }
 
-  // ======= SISTEMA DE PERSISTÊNCIA DE RESULTADOS =======
+  // ======= SISTEMA DE PERSISTÊNCIA AVANÇADO =======
   
   private saveAnalysisResult(contractId: string, result: ESGAnalysisResult): void {
     try {
+      // Salvar resultado da análise
       const savedResults = this.getSavedResults();
       savedResults[contractId] = result;
       localStorage.setItem('esg-analysis-results', JSON.stringify(savedResults));
-      console.log('💾 RESULTADO SALVO NO LOCALSTORAGE:', contractId);
+      
+      // Salvar também no sessionStorage para persistir até fechar navegador
+      const sessionResults = this.getSessionResults();
+      sessionResults[contractId] = result;
+      sessionStorage.setItem('esg-session-results', JSON.stringify(sessionResults));
+      
+      console.log('💾 RESULTADO SALVO EM AMBOS OS STORAGES:', contractId);
+      console.log('📱 localStorage: Persiste até logout');
+      console.log('🌐 sessionStorage: Persiste até fechar navegador');
     } catch (error) {
       console.error('❌ Erro ao salvar resultado:', error);
     }
@@ -344,9 +353,25 @@ class MockApiService {
   private getSavedResults(): Record<string, ESGAnalysisResult> {
     try {
       const saved = localStorage.getItem('esg-analysis-results');
-      return saved ? JSON.parse(saved) : {};
+      const sessionSaved = sessionStorage.getItem('esg-session-results');
+      
+      // Combinar localStorage e sessionStorage, dando prioridade ao sessionStorage
+      const localResults = saved ? JSON.parse(saved) : {};
+      const sessionResults = sessionSaved ? JSON.parse(sessionSaved) : {};
+      
+      return { ...localResults, ...sessionResults };
     } catch (error) {
       console.error('❌ Erro ao carregar resultados salvos:', error);
+      return {};
+    }
+  }
+  
+  private getSessionResults(): Record<string, ESGAnalysisResult> {
+    try {
+      const saved = sessionStorage.getItem('esg-session-results');
+      return saved ? JSON.parse(saved) : {};
+    } catch (error) {
+      console.error('❌ Erro ao carregar resultados da sessão:', error);
       return {};
     }
   }
@@ -370,7 +395,8 @@ class MockApiService {
   public clearSavedResults(): void {
     try {
       localStorage.removeItem('esg-analysis-results');
-      console.log('🗑️ RESULTADOS SALVOS LIMPOS DO LOCALSTORAGE');
+      sessionStorage.removeItem('esg-session-results');
+      console.log('🗑️ RESULTADOS SALVOS LIMPOS DO LOCALSTORAGE E SESSIONSTORAGE');
     } catch (error) {
       console.error('❌ Erro ao limpar resultados:', error);
     }

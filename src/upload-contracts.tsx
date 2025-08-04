@@ -56,6 +56,45 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
     operator: ''
   });
 
+  // RECUPERAR ARQUIVOS DA SESSÃO AO CARREGAR PÁGINA
+  useEffect(() => {
+    const loadSessionFiles = () => {
+      try {
+        const sessionFiles = JSON.parse(sessionStorage.getItem('uploaded-files') || '[]');
+        const sessionResults = JSON.parse(sessionStorage.getItem('esg-session-results') || '{}');
+        
+        console.log('🔄 RECUPERANDO ARQUIVOS DA SESSÃO...');
+        console.log('📁 Session files:', sessionFiles);
+        console.log('📊 Session results:', sessionResults);
+        
+        if (sessionFiles.length > 0) {
+          console.log(`✅ ${sessionFiles.length} arquivo(s) encontrado(s) na sessão`);
+          
+          // Recriar lista de arquivos baseada na sessão
+          const recoveredFiles: UploadedFile[] = sessionFiles.map((fileData: any) => {
+            const result = sessionResults[fileData.contractId];
+            
+            return {
+              file: new File([], fileData.name, { type: fileData.type }), // Arquivo placeholder
+              id: `recovered-${Date.now()}-${Math.random()}`,
+              status: result ? 'completed' : 'analyzing',
+              progress: 100,
+              contractId: fileData.contractId,
+              result: result
+            };
+          });
+          
+          setFiles(recoveredFiles);
+          console.log('✅ ARQUIVOS RECUPERADOS DA SESSÃO:', recoveredFiles.length);
+        }
+      } catch (error) {
+        console.error('❌ Erro ao recuperar arquivos da sessão:', error);
+      }
+    };
+    
+    loadSessionFiles();
+  }, []);
+
   // Debug: monitorar mudanças no estado dos arquivos
   useEffect(() => {
     console.log('Estado dos arquivos mudou:', files);
@@ -192,6 +231,24 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
           console.error('📊 Resultado recebido:', analysisResult);
         }
         
+        // SALVAR PDF NA SESSÃO PARA PERSISTIR ATÉ FECHAR NAVEGADOR
+        const fileData = {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          lastModified: file.lastModified,
+          contractId: uploadResult.contractId,
+          uploadDate: new Date().toISOString()
+        };
+        
+        // Salvar metadados do arquivo no sessionStorage
+        const sessionFiles = JSON.parse(sessionStorage.getItem('uploaded-files') || '[]');
+        sessionFiles.push(fileData);
+        sessionStorage.setItem('uploaded-files', JSON.stringify(sessionFiles));
+        
+        console.log('💾 ARQUIVO SALVO NA SESSÃO:', fileData);
+        console.log('📁 Total de arquivos na sessão:', sessionFiles.length);
+        
         const updatedFile: UploadedFile = {
           file,
           id: fileId,
@@ -227,25 +284,37 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
 
         // CONFIRMAÇÃO VISUAL PARA O USUÁRIO COM EMAIL CONFIRMADO
         if (user?.email && updatedFile.result) {
-          const message = `
-✅ ANÁLISE ESG CONCLUÍDA!
+          // Mostrar notificação imediata do email
+          console.log('📧 PREPARANDO NOTIFICAÇÃO DE EMAIL...');
+          
+          const emailMessage = `
+🎉 ANÁLISE ESG CONCLUÍDA COM SUCESSO!
 
-📄 Arquivo: ${updatedFile.file.name}
+📄 Arquivo Processado: ${updatedFile.file.name}
 📊 Score ESG Geral: ${updatedFile.result.overallScore}/100
 🌱 Ambiental: ${updatedFile.result.categories.environmental.score}/100
 👥 Social: ${updatedFile.result.categories.social.score}/100
 🏡 Governança: ${updatedFile.result.categories.governance.score}/100
 
-📧 ✅ RELATÓRIO ENVIADO POR EMAIL PARA: ${user.email}
-📨 Status: Email simulado enviado com sucesso!
+📧 ✅ EMAIL ENVIADO AUTOMATICAMENTE!
+📨 Destinatário: ${user.email}
+📋 Assunto: "Relatório ESG - ${updatedFile.file.name}"
+📎 Anexo: Relatório PDF detalhado
+🕒 Enviado em: ${new Date().toLocaleString('pt-BR')}
 
-👁️ Clique em "Ver Detalhes" para ver o relatório completo
-🔍 Navegue para "Relatórios" ou "Compliance" para ver dados atualizados
+⚠️ SISTEMA DE DEMONSTRAÇÃO:
+Este é um projeto de portfólio que simula o envio de email.
+Em produção, seria integrado com SendGrid/AWS SES.
+
+👁️ Ver relatório completo: Clique em "Relatório Detalhado"
+🔍 Dados atualizados: Vá para "Relatórios" ou "Compliance"
           `;
           
+          // Mostrar imediatamente
           setTimeout(() => {
-            alert(message);
-          }, 1000);
+            alert(emailMessage);
+            console.log('✅ NOTIFICAÇÃO DE EMAIL EXIBIDA');
+          }, 500);
         }
         
         // Verificação adicional após 1 segundo
@@ -748,6 +817,51 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
         </div>
       )}
 
+      {/* Status dos Emails Enviados */}
+      {(() => {
+        const emailLogs = JSON.parse(localStorage.getItem('email-logs') || '[]');
+        if (emailLogs.length > 0) {
+          return (
+            <div className={`rounded-lg p-6 ${
+              theme === 'dark' ? 'bg-green-900/20 border border-green-800/30' : 'bg-green-50 border border-green-200'
+            }`}>
+              <h3 className={`font-semibold mb-3 ${
+                theme === 'dark' ? 'text-green-400' : 'text-green-800'
+              }`}>
+                📧 Status dos Emails Enviados
+              </h3>
+              <div className="space-y-2">
+                {emailLogs.slice(-3).map((log: any, index: number) => (
+                  <div key={index} className={`p-3 rounded-lg ${
+                    theme === 'dark' ? 'bg-green-800/20' : 'bg-green-100'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className={`font-medium ${theme === 'dark' ? 'text-green-300' : 'text-green-700'}`}>
+                          ✅ {log.fileName}
+                        </p>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
+                          📧 Para: {log.recipient} | Score: {log.score}/100
+                        </p>
+                      </div>
+                      <div className={`text-xs ${theme === 'dark' ? 'text-green-500' : 'text-green-600'}`}>
+                        {new Date(log.timestamp).toLocaleString('pt-BR')}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {emailLogs.length > 3 && (
+                  <p className={`text-sm text-center ${theme === 'dark' ? 'text-green-400' : 'text-green-600'}`}>
+                    E mais {emailLogs.length - 3} email(s) enviado(s)...
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        }
+        return null;
+      })()}
+
       {/* Quick Tips */}
       <div className={`rounded-lg p-6 ${
         theme === 'dark' ? 'bg-blue-900/20 border border-blue-800/30' : 'bg-blue-50 border border-blue-200'
@@ -755,18 +869,18 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
         <h3 className={`font-semibold mb-3 ${
           theme === 'dark' ? 'text-blue-400' : 'text-blue-800'
         }`}>
-          💡 Dicas para Melhor Análise
+          💡 Sistema de Análise e Email Automático
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <ul className={`space-y-2 ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
-            <li>• Contratos completos geram análises mais precisas</li>
-            <li>• PDFs com texto pesquisável são preferíveis</li>
-            <li>• Inclua anexos ambientais e sociais quando possível</li>
+            <li>• ✅ Análise ESG automatizada com IA</li>
+            <li>• 📧 Email enviado automaticamente após análise</li>
+            <li>• 💾 Dados salvos até fechar o navegador</li>
           </ul>
           <ul className={`space-y-2 ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
-            <li>• A análise considera frameworks GRI, SASB e TCFD</li>
-            <li>• Resultados são baseados em padrões do setor O&G</li>
-            <li>• Relatórios detalhados disponíveis após análise</li>
+            <li>• 📊 Baseado em frameworks GRI, SASB, TCFD</li>
+            <li>• 🔍 Sistema de demonstração (portfólio)</li>
+            <li>• 📋 Relatórios detalhados sempre disponíveis</li>
           </ul>
         </div>
       </div>

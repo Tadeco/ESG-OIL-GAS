@@ -94,17 +94,6 @@ const Layout: React.FC<LayoutProps> = ({
       ]
     },
     {
-      id: 'analysis',
-      label: 'ESG Analysis',
-      icon: <BarChart3 className="w-5 h-5" />,
-      path: '/analysis',
-      children: [
-        { id: 'environmental', label: 'Environmental', icon: <Leaf className="w-4 h-4" />, path: '/analysis/environmental' },
-        { id: 'social', label: 'Social', icon: <Users className="w-4 h-4" />, path: '/analysis/social' },
-        { id: 'governance', label: 'Governance', icon: <Scale className="w-4 h-4" />, path: '/analysis/governance' }
-      ]
-    },
-    {
       id: 'compliance',
       label: 'Compliance',
       icon: <Shield className="w-5 h-5" />,
