@@ -47,13 +47,18 @@ const App: React.FC = () => {
     document.body.className = theme === 'dark' ? 'dark bg-gray-900' : 'bg-gray-50';
   }, [theme]);
 
-  const handleLogin = async (email: string, password: string, mfaToken?: string): Promise<void> => {
+  const handleLogin = async (name: string, email: string): Promise<void> => {
     setLoading(true);
     try {
-      // Usar mock API para login
-      const result = await mockApi.loginWithGoogle();
-      setUser(result.user);
-      localStorage.setItem('oilgas-user', JSON.stringify(result.user));
+      // Login simplificado com nome e email
+      const result = await mockApi.login(email, 'dummy-password'); // Mock API ainda precisa de senha
+      const userWithName = {
+        ...result.user,
+        name: name, // Usar o nome real fornecido pelo usuário
+        email: email // Usar o email real fornecido
+      };
+      setUser(userWithName);
+      localStorage.setItem('oilgas-user', JSON.stringify(userWithName));
       localStorage.setItem('oilgas-token', result.token);
       setCurrentRoute('dashboard');
     } catch (error) {
@@ -64,28 +69,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSocialLogin = async (provider: 'google' | 'microsoft'): Promise<void> => {
-    setLoading(true);
-    try {
-      // Simular OAuth
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      const result = await mockApi.loginWithGoogle();
-      // Atualizar o loginProvider baseado no botão clicado
-      const userWithProvider = {
-        ...result.user,
-        loginProvider: provider
-      };
-      setUser(userWithProvider);
-      localStorage.setItem('oilgas-user', JSON.stringify(userWithProvider));
-      localStorage.setItem('oilgas-token', result.token);
-      setCurrentRoute('dashboard');
-    } catch (error) {
-      console.error('Social login error:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Função removida - não usamos mais social login
 
   const handleLogout = (): void => {
     setUser(null);
@@ -138,7 +122,6 @@ const App: React.FC = () => {
         return (
           <Login
             onLogin={handleLogin}
-            onSocialLogin={handleSocialLogin}
             onNavigate={handleNavigate}
             theme={theme}
           />

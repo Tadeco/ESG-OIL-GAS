@@ -1,148 +1,86 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Mail, 
-  Lock, 
-  Eye, 
-  EyeOff, 
+  Users,
   AlertCircle,
   Loader2,
   Shield,
-  ArrowRight,
-  CheckCircle,
-  Smartphone,
-  Globe,
-  Building2
+  ArrowRight
 } from 'lucide-react';
 
 interface LoginProps {
-  onLogin?: (email: string, password: string, mfaToken?: string) => Promise<void>;
-  onSocialLogin?: (provider: 'google' | 'microsoft') => Promise<void>;
+  onLogin?: (name: string, email: string) => Promise<void>;
   onNavigate?: (path: string) => void;
   theme?: 'light' | 'dark';
 }
 
 const Login: React.FC<LoginProps> = ({ 
   onLogin = async () => {}, 
-  onSocialLogin = async () => {},
   onNavigate = () => {},
   theme = 'light' 
 }) => {
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showMFA, setShowMFA] = useState(false);
   const [error, setError] = useState<string>('');
   
-  // Form state
+  // Form state simplificado
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
-  const [mfaToken, setMfaToken] = useState('');
   
-  // Form validation
+  // Form validation simplificada
+  const [nameError, setNameError] = useState('');
   const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [mfaError, setMfaError] = useState('');
+
+  // Validate name
+  const validateName = (value: string) => {
+    if (!value.trim()) {
+      setNameError('Nome é obrigatório');
+      return false;
+    }
+    if (value.trim().length < 2) {
+      setNameError('Nome deve ter pelo menos 2 caracteres');
+      return false;
+    }
+    setNameError('');
+    return true;
+  };
 
   // Validate email
   const validateEmail = (value: string) => {
     if (!value) {
-      setEmailError('Email is required');
+      setEmailError('Email é obrigatório');
       return false;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      setEmailError('Invalid email address');
+      setEmailError('Email inválido');
       return false;
     }
     setEmailError('');
     return true;
   };
 
-  // Validate password
-  const validatePassword = (value: string) => {
-    if (!value) {
-      setPasswordError('Password is required');
-      return false;
-    }
-    if (value.length < 8) {
-      setPasswordError('Password must be at least 8 characters');
-      return false;
-    }
-    setPasswordError('');
-    return true;
-  };
-
-  // Validate MFA token
-  const validateMFA = (value: string) => {
-    if (!value) {
-      setMfaError('MFA token is required');
-      return false;
-    }
-    if (!/^\d{6}$/.test(value)) {
-      setMfaError('MFA token must be 6 digits');
-      return false;
-    }
-    setMfaError('');
-    return true;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    const isNameValid = validateName(name);
     const isEmailValid = validateEmail(email);
-    const isPasswordValid = validatePassword(password);
     
-    if (!isEmailValid || !isPasswordValid) return;
-    
-    setIsLoading(true);
-    setError('');
-    
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check if MFA is required (mock logic)
-      if (email.includes('mfa')) {
-        setShowMFA(true);
-      } else {
-        await onLogin(email, password);
-        onNavigate('/dashboard');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Invalid credentials');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleMFASubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateMFA(mfaToken)) return;
+    if (!isNameValid || !isEmailValid) return;
     
     setIsLoading(true);
     setError('');
     
     try {
-      await onLogin(email, password, mfaToken);
+      await onLogin(name.trim(), email.trim());
       onNavigate('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Invalid MFA token');
+      setError(err.message || 'Erro ao fazer login');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSocialLogin = async (provider: 'google' | 'microsoft') => {
-    setIsLoading(true);
-    setError('');
-    
-    try {
-      await onSocialLogin(provider);
-    } catch (err: any) {
-      setError(err.message || `${provider} login failed`);
-      setIsLoading(false);
-    }
-  };
+  // Função removida - não usamos mais MFA
+  // Função removida - não usamos mais social login
 
   return (
     <div className={`min-h-screen flex items-center justify-center p-4 ${
@@ -172,25 +110,58 @@ const Login: React.FC<LoginProps> = ({
             <h1 className={`text-2xl font-bold mb-2 ${
               theme === 'dark' ? 'text-white' : 'text-gray-900'
             }`}>
-              Welcome Back
+              Acesso Simplificado
             </h1>
             <p className={`text-sm ${
               theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
             }`}>
-              Sign in to OIL & GAS ESG Contract Analyzer
+              Entre no OIL & GAS ESG Contract Analyzer
             </p>
           </div>
 
           {/* Form */}
           <div className="p-8">
-            {!showMFA ? (
-              <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Nome Field */}
+                <div>
+                  <label htmlFor="name" className={`block text-sm font-medium mb-2 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Seu Nome
+                  </label>
+                  <div className="relative">
+                    <Users className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
+                      theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
+                    }`} />
+                    <input
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => {
+                        setName(e.target.value);
+                        if (nameError) validateName(e.target.value);
+                      }}
+                      onBlur={() => validateName(name)}
+                      autoComplete="name"
+                      placeholder="Digite seu nome completo"
+                      className={`w-full pl-10 pr-4 py-3 rounded-lg border transition-all duration-200 ${
+                        theme === 'dark'
+                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-green-500'
+                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-green-500'
+                      } ${nameError ? 'border-red-500' : ''}`}
+                    />
+                  </div>
+                  {nameError && (
+                    <p className="mt-2 text-sm text-red-500">{nameError}</p>
+                  )}
+                </div>
+
                 {/* Email Field */}
                 <div>
                   <label htmlFor="email" className={`block text-sm font-medium mb-2 ${
                     theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                   }`}>
-                    Email Address
+                    Seu Email
                   </label>
                   <div className="relative">
                     <Mail className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -206,7 +177,7 @@ const Login: React.FC<LoginProps> = ({
                       }}
                       onBlur={() => validateEmail(email)}
                       autoComplete="email"
-                      placeholder="you@shell.com"
+                      placeholder="seuemail@empresa.com"
                       className={`w-full pl-10 pr-4 py-3 rounded-lg border transition-all duration-200 ${
                         theme === 'dark'
                           ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-green-500'
@@ -219,72 +190,6 @@ const Login: React.FC<LoginProps> = ({
                   )}
                 </div>
 
-                {/* Password Field */}
-                <div>
-                  <label htmlFor="password" className={`block text-sm font-medium mb-2 ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
-                      theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
-                    }`} />
-                    <input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => {
-                        setPassword(e.target.value);
-                        if (passwordError) validatePassword(e.target.value);
-                      }}
-                      onBlur={() => validatePassword(password)}
-                      autoComplete="current-password"
-                      placeholder="••••••••"
-                      className={`w-full pl-10 pr-12 py-3 rounded-lg border transition-all duration-200 ${
-                        theme === 'dark'
-                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-green-500'
-                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-green-500'
-                      } ${passwordError ? 'border-red-500' : ''}`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                      }`}
-                    >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                  {passwordError && (
-                    <p className="mt-2 text-sm text-red-500">{passwordError}</p>
-                  )}
-                </div>
-
-                {/* Remember Me & Forgot Password */}
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                    />
-                    <span className={`ml-2 text-sm ${
-                      theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                    }`}>
-                      Remember me
-                    </span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/forgot-password')}
-                    className="text-sm text-green-600 hover:text-green-700 font-medium"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
 
                 {/* Error Message */}
                 {error && (
@@ -301,9 +206,9 @@ const Login: React.FC<LoginProps> = ({
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={isLoading || !email || !password}
+                  disabled={isLoading || !name.trim() || !email.trim()}
                   className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
-                    !isLoading && email && password
+                    !isLoading && name.trim() && email.trim()
                       ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
                       : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
                   }`}
@@ -311,17 +216,16 @@ const Login: React.FC<LoginProps> = ({
                   {isLoading ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      Signing in...
+                      Entrando...
                     </>
                   ) : (
                     <>
-                      Sign In
+                      Entrar no Sistema
                       <ArrowRight className="w-5 h-5" />
                     </>
                   )}
                 </button>
 
-                {/* Divider */}
                 {/* Aviso sobre envio por email */}
                 <div className={`p-4 rounded-lg border-l-4 ${
                   theme === 'dark' 
@@ -340,109 +244,12 @@ const Login: React.FC<LoginProps> = ({
                         theme === 'dark' ? 'text-blue-300' : 'text-blue-700'
                       }`}>
                         Após a análise ESG, o relatório detalhado será enviado automaticamente 
-                        para o email informado no login.
+                        para o email informado acima.
                       </p>
                     </div>
                   </div>
                 </div>
               </form>
-            ) : (
-              <form onSubmit={handleMFASubmit} className="space-y-6">
-                <div className="text-center mb-6">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 mb-4">
-                    <Smartphone className="w-8 h-8 text-white" />
-                  </div>
-                  <h2 className={`text-xl font-semibold mb-2 ${
-                    theme === 'dark' ? 'text-white' : 'text-gray-900'
-                  }`}>
-                    Two-Factor Authentication
-                  </h2>
-                  <p className={`text-sm ${
-                    theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                  }`}>
-                    Enter the 6-digit code from your authenticator app
-                  </p>
-                </div>
-
-                {/* MFA Token Field */}
-                <div>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={mfaToken}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-                        setMfaToken(value);
-                        if (mfaError) validateMFA(value);
-                      }}
-                      onBlur={() => validateMFA(mfaToken)}
-                      inputMode="numeric"
-                      maxLength={6}
-                      autoComplete="one-time-code"
-                      placeholder="000000"
-                      className={`w-full text-center text-2xl font-mono tracking-widest px-4 py-4 rounded-lg border transition-all duration-200 ${
-                        theme === 'dark'
-                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500'
-                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500'
-                      } ${mfaError ? 'border-red-500' : ''}`}
-                    />
-                  </div>
-                  {mfaError && (
-                    <p className="mt-2 text-sm text-red-500 text-center">{mfaError}</p>
-                  )}
-                </div>
-
-                {/* Error Message */}
-                {error && (
-                  <div className={`p-4 rounded-lg flex items-start gap-3 ${
-                    theme === 'dark' ? 'bg-red-900/20 border border-red-900/30' : 'bg-red-50 border border-red-200'
-                  }`}>
-                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                    <p className={`text-sm ${theme === 'dark' ? 'text-red-400' : 'text-red-700'}`}>
-                      {error}
-                    </p>
-                  </div>
-                )}
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={isLoading || mfaToken.length !== 6}
-                  className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
-                    !isLoading && mfaToken.length === 6
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
-                      : 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Verifying...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="w-5 h-5" />
-                      Verify & Sign In
-                    </>
-                  )}
-                </button>
-
-                {/* Back to Login */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowMFA(false);
-                    setMfaToken('');
-                    setError('');
-                  }}
-                  className={`w-full text-sm font-medium ${
-                    theme === 'dark' ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-700'
-                  }`}
-                >
-                  Back to login
-                </button>
-              </form>
-            )}
           </div>
 
           {/* Footer */}

@@ -96,17 +96,17 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className={`space-y-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-      {/* Header com Introdução */}
+      {/* Header Simplificado */}
       <div className={`rounded-lg p-6 ${
         theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
       }`}>
-        <div className="flex items-start justify-between">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold mb-2">
-              Bem-vindo ao OIL & GAS ESG Contract Analyzer
+            <h1 className="text-3xl font-bold mb-2">
+              Olá, {user.name}! 👋
             </h1>
-            <p className={`text-lg mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-              Olá, {user.name}! Pronto para analisar contratos ESG hoje?
+            <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+              Pronto para analisar contratos ESG hoje?
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -115,88 +115,31 @@ const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        {/* Explicação Completa do Sistema */}
-        <div className={`mt-6 p-6 rounded-lg ${
-          theme === 'dark' ? 'bg-gradient-to-r from-blue-900/20 to-green-900/20 border border-blue-800/30' : 'bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200'
-        }`}>
-          <div className="flex items-start gap-4">
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex-shrink-0">
-              <Shield className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className={`font-bold text-lg mb-3 ${
-                theme === 'dark' ? 'text-blue-400' : 'text-blue-800'
-              }`}>
-                🏢 Sistema de Análise ESG para Petróleo & Gás
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <p className={`text-sm leading-relaxed mb-3 ${
-                    theme === 'dark' ? 'text-blue-300' : 'text-blue-700'
-                  }`}>
-                    <strong>Desenvolvido por:</strong> Eng. Tadeu Santana<br/>
-                    <strong>Finalidade:</strong> Demonstração de expertise em ESG para recrutadores do setor O&G
-                  </p>
-                  
-                  <h4 className={`font-semibold text-sm mb-2 ${
-                    theme === 'dark' ? 'text-green-400' : 'text-green-700'
-                  }`}>
-                    🎯 Funcionalidades Principais:
-                  </h4>
-                  <ul className={`text-sm space-y-1 ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    <li>• Upload e análise de contratos em PDF</li>
-                    <li>• Análise ESG com IA (simulação GPT-4)</li>
-                    <li>• Scores automáticos para Environmental, Social, Governance</li>
-                    <li>• Relatórios detalhados com download</li>
-                    <li>• Compliance com GRI, SASB, TCFD, IPIECA</li>
-                  </ul>
-                </div>
-                
-                <div>
-                  <h4 className={`font-semibold text-sm mb-2 ${
-                    theme === 'dark' ? 'text-purple-400' : 'text-purple-700'
-                  }`}>
-                    🔧 Tecnologias Utilizadas:
-                  </h4>
-                  <ul className={`text-sm space-y-1 mb-3 ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    <li>• React 18 + TypeScript</li>
-                    <li>• Vite + Tailwind CSS</li>
-                    <li>• PDF.js para leitura real de PDFs</li>
-                    <li>• Análise baseada em keywords ESG</li>
-                    <li>• Deploy no Vercel via GitHub</li>
-                  </ul>
-                  
-                  <h4 className={`font-semibold text-sm mb-2 ${
-                    theme === 'dark' ? 'text-orange-400' : 'text-orange-700'
-                  }`}>
-                    🛢️ Aplicação Setorial:
-                  </h4>
-                  <p className={`text-sm ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    Adaptável para <strong>qualquer empresa</strong> de petróleo e gás: Shell, Petrobras, BP, Total, Equinor, etc.
-                  </p>
-                </div>
-              </div>
-              
-              <div className={`p-4 rounded-lg border-l-4 ${
-                theme === 'dark' 
-                  ? 'border-yellow-500 bg-yellow-900/20' 
-                  : 'border-yellow-500 bg-yellow-50'
-              }`}>
-                <p className={`text-sm font-medium ${
-                  theme === 'dark' ? 'text-yellow-300' : 'text-yellow-800'
-                }`}>
-                  📋 <strong>Dados de Demonstração:</strong> Este sistema utiliza diretrizes e exemplos reais da Shell, mas pode ser configurado para qualquer operadora. Os contratos simulados incluem cenários realistas de upstream, downstream e questões ESG típicas do setor.
-                </p>
-              </div>
-            </div>
-          </div>
+        {/* Atalhos Rápidos */}
+        <div className={`mt-6 grid grid-cols-1 md:grid-cols-3 gap-4`}>
+          <button className={`p-4 rounded-lg text-left transition-all hover:scale-105 ${
+            theme === 'dark' ? 'bg-gradient-to-br from-green-900/30 to-green-800/30 border border-green-700/50 hover:border-green-600' : 'bg-gradient-to-br from-green-50 to-green-100 border border-green-200 hover:border-green-300'
+          }`}>
+            <FileText className="w-8 h-8 text-green-600 mb-2" />
+            <h3 className="font-semibold mb-1">Upload de Contrato</h3>
+            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Envie um PDF para análise ESG</p>
+          </button>
+          
+          <button className={`p-4 rounded-lg text-left transition-all hover:scale-105 ${
+            theme === 'dark' ? 'bg-gradient-to-br from-blue-900/30 to-blue-800/30 border border-blue-700/50 hover:border-blue-600' : 'bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 hover:border-blue-300'
+          }`}>
+            <BarChart3 className="w-8 h-8 text-blue-600 mb-2" />
+            <h3 className="font-semibold mb-1">Ver Relatórios</h3>
+            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Acesse análises anteriores</p>
+          </button>
+          
+          <button className={`p-4 rounded-lg text-left transition-all hover:scale-105 ${
+            theme === 'dark' ? 'bg-gradient-to-br from-purple-900/30 to-purple-800/30 border border-purple-700/50 hover:border-purple-600' : 'bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 hover:border-purple-300'
+          }`}>
+            <Shield className="w-8 h-8 text-purple-600 mb-2" />
+            <h3 className="font-semibold mb-1">Compliance</h3>
+            <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Verificar conformidade ESG</p>
+          </button>
         </div>
       </div>
 
@@ -277,37 +220,19 @@ const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        {/* Funcionalidades do Sistema */}
-        <div className={`rounded-lg p-6 ${
+        {/* Resumo Simples */}
+        <div className={`rounded-lg p-6 text-center ${
           theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
         }`}>
-          <h2 className="text-lg font-semibold mb-4">Capacidades do Sistema</h2>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <Zap className="w-5 h-5 text-blue-500" />
-              <span className="text-sm">Análise AI com GPT-4 para contratos ESG</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Target className="w-5 h-5 text-green-500" />
-              <span className="text-sm">Identificação automática de riscos</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Award className="w-5 h-5 text-purple-500" />
-              <span className="text-sm">Scoring ESG baseado em frameworks internacionais</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Globe className="w-5 h-5 text-indigo-500" />
-              <span className="text-sm">Suporte a múltiplas linguagens</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Building2 className="w-5 h-5 text-cyan-500" />
-              <span className="text-sm">Especializado em petróleo e gás</span>
-            </div>
-          </div>
+          <h2 className="text-lg font-semibold mb-3">🚀 Sistema de Análise ESG</h2>
+          <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+            Analise contratos de petróleo e gás com inteligência artificial.<br/>
+            Receba relatórios detalhados por email automaticamente.
+          </p>
           
           <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-              Desenvolvido com tecnologias modernas: NestJS, React, PostgreSQL, Redis, Docker, Kubernetes
+            <p className={`text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>
+              Desenvolvido por <strong>Eng. Tadeu Santana</strong>
             </p>
           </div>
         </div>

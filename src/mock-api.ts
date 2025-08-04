@@ -146,7 +146,7 @@ class MockApiService {
   }
 
   // ANÁLISE REAL DE PDF - Sistema robusto que sempre funciona
-  async analyzeContract(contractId: string, fileName?: string, fileSize?: number, file?: File): Promise<ESGAnalysisResult> {
+  async analyzeContract(contractId: string, fileName?: string, fileSize?: number, file?: File, userEmail?: string, userName?: string): Promise<ESGAnalysisResult> {
     console.log('🚀'.repeat(80));
     console.log('🔍 SISTEMA DE ANÁLISE ROBUSTO - GARANTIA DE RESULTADOS REAIS');
     console.log('🚀'.repeat(80));
@@ -177,6 +177,17 @@ class MockApiService {
         
         // Adicionar identificador único baseado no arquivo
         result.fileName = `${file.name} (${new Date().getTime()})`;
+        
+        // NOVO: ENVIO AUTOMÁTICO POR EMAIL APÓS ANÁLISE
+        if (userEmail && userName) {
+          console.log('📧 INICIANDO ENVIO AUTOMÁTICO POR EMAIL...');
+          try {
+            const emailResult = await this.sendReportByEmail(contractId, userEmail, userName, result);
+            console.log('📧 Resultado do envio:', emailResult.message);
+          } catch (emailError) {
+            console.log('❌ Erro no envio automático:', emailError);
+          }
+        }
         
         return result;
         
@@ -324,6 +335,42 @@ class MockApiService {
     return {
       downloadUrl: `https://mock-api.com/reports/${contractId}.${format.toLowerCase()}`
     };
+  }
+
+  // NOVA FUNCIONALIDADE: Envio de relatório por email
+  async sendReportByEmail(contractId: string, userEmail: string, userName: string, reportData: any): Promise<{ success: boolean; message: string }> {
+    console.log('📧'.repeat(50));
+    console.log('📧 ENVIANDO RELATÓRIO POR EMAIL');
+    console.log('📧'.repeat(50));
+    console.log('👤 Destinatário:', userName, '<' + userEmail + '>');
+    console.log('📋 Contrato ID:', contractId);
+    console.log('📊 Score ESG:', reportData.overallScore);
+    console.log('🕒 Data:', new Date().toLocaleString('pt-BR'));
+    
+    // Simular tempo de processamento do envio
+    await this.delay(2000);
+    
+    // Simulação de envio sempre bem-sucedido
+    const success = true;
+    
+    if (success) {
+      console.log('✅ EMAIL ENVIADO COM SUCESSO!');
+      console.log('📧 Relatório ESG enviado para:', userEmail);
+      console.log('📋 Assunto: "Relatório ESG - " + reportData.fileName');
+      console.log('💌 Conteúdo inclui: Score ESG, Riscos Identificados, Recomendações');
+      console.log('📎 Anexo: Relatório PDF detalhado');
+      
+      return {
+        success: true,
+        message: `Relatório enviado com sucesso para ${userEmail}`
+      };
+    } else {
+      console.log('❌ ERRO NO ENVIO DO EMAIL');
+      return {
+        success: false,
+        message: 'Erro ao enviar relatório por email. Tente novamente.'
+      };
+    }
   }
 
   // Simula dashboard metrics

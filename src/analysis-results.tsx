@@ -17,7 +17,9 @@ import {
   Target,
   Calendar,
   Info,
-  Clock
+  Clock,
+  Mail,
+  Send
 } from 'lucide-react';
 import { mockApi, ESGAnalysisResult } from './mock-api';
 
@@ -36,6 +38,8 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'environmental' | 'social' | 'governance' | 'compliance'>('overview');
   const [showRecommendations, setShowRecommendations] = useState(false);
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   useEffect(() => {
     const loadAnalysis = async () => {
@@ -51,6 +55,43 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
 
     loadAnalysis();
   }, [contractId]);
+
+  // Função para enviar relatório por email
+  const handleSendEmail = async () => {
+    if (!analysis) return;
+    
+    // Buscar dados do usuário do localStorage
+    const savedUser = localStorage.getItem('oilgas-user');
+    if (!savedUser) {
+      alert('Usuário não encontrado. Faça login novamente.');
+      return;
+    }
+    
+    const user = JSON.parse(savedUser);
+    
+    setEmailSending(true);
+    
+    try {
+      const result = await mockApi.sendReportByEmail(
+        analysis.contractId,
+        user.email,
+        user.name,
+        analysis
+      );
+      
+      if (result.success) {
+        setEmailSent(true);
+        alert(`✅ ${result.message}`);
+      } else {
+        alert(`❌ ${result.message}`);
+      }
+    } catch (error) {
+      console.error('Erro ao enviar email:', error);
+      alert('❌ Erro ao enviar relatório por email. Tente novamente.');
+    } finally {
+      setEmailSending(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -135,6 +176,29 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
 
   return (
     <div className={`space-y-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+      {/* Notificação de Email Enviado Automaticamente */}
+      <div className={`p-4 rounded-lg border-l-4 mb-6 ${
+        theme === 'dark' 
+          ? 'border-green-500 bg-green-900/20' 
+          : 'border-green-500 bg-green-50'
+      }`}>
+        <div className="flex items-start gap-3">
+          <Mail className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <h4 className={`font-semibold text-sm mb-1 ${
+              theme === 'dark' ? 'text-green-400' : 'text-green-800'
+            }`}>
+              📧 Relatório Enviado Automaticamente
+            </h4>
+            <p className={`text-sm ${
+              theme === 'dark' ? 'text-green-300' : 'text-green-700'
+            }`}>
+              O relatório detalhado desta análise ESG já foi enviado automaticamente para o seu email após a conclusão da análise. Verifique sua caixa de entrada.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -173,14 +237,39 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
             <Target className="w-4 h-4" />
             Recomendações
           </button>
+          
+          <button 
+            onClick={handleSendEmail}
+            disabled={emailSending || emailSent}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+              emailSent 
+                ? 'bg-green-600 text-white cursor-not-allowed'
+                : emailSending
+                ? 'bg-gray-400 text-white cursor-not-allowed'
+                : 'bg-purple-600 hover:bg-purple-700 text-white'
+            }`}
+          >
+            {emailSending ? (
+              <>
+                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                Enviando...
+              </>
+            ) : emailSent ? (
+              <>
+                <CheckCircle className="w-4 h-4" />
+                Enviado!
+              </>
+            ) : (
+              <>
+                <Send className="w-4 h-4" />
+                Enviar por Email
+              </>
+            )}
+          </button>
+          
           <button className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors">
             <Download className="w-4 h-4" />
-            Relatório PDF
-          </button>
-          <button className={`p-2 rounded-lg transition-colors ${
-            theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-          }`}>
-            <Share2 className="w-5 h-5" />
+            Download PDF
           </button>
         </div>
       </div>

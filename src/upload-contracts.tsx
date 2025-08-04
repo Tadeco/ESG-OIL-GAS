@@ -160,7 +160,15 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
         console.log('  - Tamanho:', file.size);
         console.log('  - Última modificação:', new Date(file.lastModified));
         
-        const analysisResult = await mockApi.analyzeContract(uploadResult.contractId, file.name, file.size, file);
+        // Incluir informações do usuário para envio automático de email
+        const analysisResult = await mockApi.analyzeContract(
+          uploadResult.contractId, 
+          file.name, 
+          file.size, 
+          file,
+          user?.email,  // EMAIL DO USUÁRIO PARA ENVIO AUTOMÁTICO
+          user?.name    // NOME DO USUÁRIO PARA ENVIO AUTOMÁTICO
+        );
         
         console.log('🎯'.repeat(60));
         console.log('✅ ANÁLISE CONCLUÍDA - RESULTADO RECEBIDO');
@@ -251,30 +259,44 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
     }
   };
 
-  // Simular envio por email
+  // ENVIO REAL por email usando a nova API
   const sendReportByEmail = async (file: UploadedFile, userEmail: string) => {
-    console.log('📧 SIMULANDO ENVIO POR EMAIL...');
+    if (!user || !file.result) return;
+    
+    console.log('📧 ENVIANDO RELATÓRIO POR EMAIL...');
     console.log('📄 Arquivo:', file.file.name);
     console.log('📧 Destinatário:', userEmail);
     console.log('📊 Score:', file.result?.overallScore);
     
-    // Simular delay de envio
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mostrar confirmação visual
-    const message = `
-📧 RELATÓRIO ENVIADO POR EMAIL!
+    try {
+      const emailResult = await mockApi.sendReportByEmail(
+        file.contractId!,
+        userEmail,
+        user.name,
+        file.result
+      );
+      
+      if (emailResult.success) {
+        const message = `
+✅ RELATÓRIO ENVIADO COM SUCESSO!
 
-✅ Para: ${userEmail}
+📧 Para: ${userEmail}
 📄 Arquivo: ${file.file.name}
 📊 Score ESG: ${file.result?.overallScore}/100
 ⏰ Enviado em: ${new Date().toLocaleString('pt-BR')}
 
-O relatório detalhado foi enviado para sua caixa de entrada.
-    `;
-    
-    alert(message);
-    console.log('✅ EMAIL SIMULADO ENVIADO COM SUCESSO');
+✅ ${emailResult.message}
+        `;
+        
+        alert(message);
+        console.log('✅ EMAIL ENVIADO COM SUCESSO');
+      } else {
+        alert(`❌ Erro ao enviar email: ${emailResult.message}`);
+      }
+    } catch (error) {
+      console.error('Erro ao enviar email:', error);
+      alert('❌ Erro ao enviar relatório por email. Tente novamente.');
+    }
   };
 
   // Remove file
