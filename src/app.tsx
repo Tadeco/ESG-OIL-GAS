@@ -132,6 +132,7 @@ const App: React.FC = () => {
           <Dashboard
             user={user || undefined}
             theme={theme}
+            onNavigate={handleNavigate}
           />
         );
 
@@ -163,8 +164,7 @@ const App: React.FC = () => {
               <div className="space-y-3">
                 {[
                   { id: 'contract-001', name: 'Shell-Upstream-Brazil-2024.pdf', status: 'Analisado', score: 78.5 },
-                  { id: 'contract-002', name: 'Petrobras-Partnership-Agreement.pdf', status: 'Analisado', score: 85.2 },
-                  { id: 'contract-003', name: 'Equinor-Offshore-Contract.pdf', status: 'Processando', score: null }
+                  { id: 'contract-002', name: 'Petrobras-Partnership-Agreement.pdf', status: 'Analisado', score: 85.2 }
                 ].map((contract) => (
                   <div key={contract.id} className={`p-4 rounded-lg border ${
                     theme === 'dark' ? 'border-gray-700' : 'border-gray-200'

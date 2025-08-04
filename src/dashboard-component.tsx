@@ -25,11 +25,13 @@ interface DashboardProps {
     role: string;
   };
   theme?: 'light' | 'dark';
+  onNavigate?: (path: string) => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({
   user = { name: 'Usuário', role: 'Analista ESG' },
-  theme = 'light'
+  theme = 'light',
+  onNavigate = () => {}
 }) => {
   // Mock data for dashboard metrics
   const metrics = [
@@ -117,25 +119,34 @@ const Dashboard: React.FC<DashboardProps> = ({
 
         {/* Atalhos Rápidos */}
         <div className={`mt-6 grid grid-cols-1 md:grid-cols-3 gap-4`}>
-          <button className={`p-4 rounded-lg text-left transition-all hover:scale-105 ${
-            theme === 'dark' ? 'bg-gradient-to-br from-green-900/30 to-green-800/30 border border-green-700/50 hover:border-green-600' : 'bg-gradient-to-br from-green-50 to-green-100 border border-green-200 hover:border-green-300'
-          }`}>
+          <button 
+            onClick={() => onNavigate('/upload')}
+            className={`p-4 rounded-lg text-left transition-all hover:scale-105 ${
+              theme === 'dark' ? 'bg-gradient-to-br from-green-900/30 to-green-800/30 border border-green-700/50 hover:border-green-600' : 'bg-gradient-to-br from-green-50 to-green-100 border border-green-200 hover:border-green-300'
+            }`}
+          >
             <FileText className="w-8 h-8 text-green-600 mb-2" />
             <h3 className="font-semibold mb-1">Upload de Contrato</h3>
             <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Envie um PDF para análise ESG</p>
           </button>
           
-          <button className={`p-4 rounded-lg text-left transition-all hover:scale-105 ${
-            theme === 'dark' ? 'bg-gradient-to-br from-blue-900/30 to-blue-800/30 border border-blue-700/50 hover:border-blue-600' : 'bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 hover:border-blue-300'
-          }`}>
+          <button 
+            onClick={() => onNavigate('/contracts')}
+            className={`p-4 rounded-lg text-left transition-all hover:scale-105 ${
+              theme === 'dark' ? 'bg-gradient-to-br from-blue-900/30 to-blue-800/30 border border-blue-700/50 hover:border-blue-600' : 'bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 hover:border-blue-300'
+            }`}
+          >
             <BarChart3 className="w-8 h-8 text-blue-600 mb-2" />
             <h3 className="font-semibold mb-1">Ver Relatórios</h3>
             <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Acesse análises anteriores</p>
           </button>
           
-          <button className={`p-4 rounded-lg text-left transition-all hover:scale-105 ${
-            theme === 'dark' ? 'bg-gradient-to-br from-purple-900/30 to-purple-800/30 border border-purple-700/50 hover:border-purple-600' : 'bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 hover:border-purple-300'
-          }`}>
+          <button 
+            onClick={() => onNavigate('/compliance')}
+            className={`p-4 rounded-lg text-left transition-all hover:scale-105 ${
+              theme === 'dark' ? 'bg-gradient-to-br from-purple-900/30 to-purple-800/30 border border-purple-700/50 hover:border-purple-600' : 'bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 hover:border-purple-300'
+            }`}
+          >
             <Shield className="w-8 h-8 text-purple-600 mb-2" />
             <h3 className="font-semibold mb-1">Compliance</h3>
             <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>Verificar conformidade ESG</p>
