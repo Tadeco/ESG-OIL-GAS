@@ -243,19 +243,19 @@ const App: React.FC = () => {
                 staticContracts.forEach(contract => contractMap.set(contract.id, contract));
                 
                 // Adicionar contratos persistentes (sobrescreve duplicatas)
-                persistentContracts.forEach(contract => contractMap.set(contract.id, contract));
+                persistentContracts.forEach((contract: any) => contractMap.set(contract.id, contract));
                 
                 // Adicionar contratos da sessão (sobrescreve duplicatas com dados mais recentes)
-                sessionContracts.forEach(contract => contractMap.set(contract.id, contract));
+                sessionContracts.forEach((contract: any) => contractMap.set(contract.id, contract));
                 
                 // Converter para array e ordenar por data
-                const allContracts = Array.from(contractMap.values()).sort((a, b) => 
+                const allContracts = Array.from(contractMap.values()).sort((a: any, b: any) => 
                   new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()
                 );
                 
                 console.log('✅ CONTRATOS FINAIS CARREGADOS:', allContracts.length);
-                console.log('  📤 Uploads do usuário:', allContracts.filter(c => c.isUploaded).length);
-                console.log('  📋 Contratos exemplo:', allContracts.filter(c => !c.isUploaded).length);
+                console.log('  📤 Uploads do usuário:', allContracts.filter((c: any) => c.isUploaded).length);
+                console.log('  📋 Contratos exemplo:', allContracts.filter((c: any) => !c.isUploaded).length);
                 
                 if (allContracts.length === 0) {
                   return (
@@ -275,6 +275,7 @@ const App: React.FC = () => {
                 
                 return (
                   <div className="space-y-3">
+                    {allContracts.map((contract) => (
                       <div key={contract.id} className={`p-4 rounded-lg border ${
                         theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
                       } ${contract.isUploaded ? 'border-l-4 border-l-green-500' : ''}`}>
@@ -327,7 +328,6 @@ const App: React.FC = () => {
                   </div>
                 );
               })()}
-              </div>
             </div>
           </div>
         );
