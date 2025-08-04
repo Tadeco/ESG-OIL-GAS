@@ -225,12 +225,11 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
           return newFiles;
         });
 
-        // Enviar relatório por email após análise concluída
-        if (user?.email && updatedFile.result) {
-          setTimeout(() => {
-            sendReportByEmail(updatedFile, user.email);
-          }, 2000); // Delay de 2 segundos para dar tempo da UI atualizar
-        }
+        // Email já é enviado automaticamente no mock-api.ts durante a análise
+        // Não precisa enviar novamente aqui
+        console.log('📧 EMAIL JÁ FOI ENVIADO AUTOMATICAMENTE DURANTE A ANÁLISE');
+        console.log('📧 Destinatário:', user?.email);
+        console.log('📊 Score ESG:', updatedFile.result?.overallScore);
         
         // Verificação adicional após 1 segundo
         setTimeout(() => {

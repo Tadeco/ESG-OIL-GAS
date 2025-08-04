@@ -222,12 +222,160 @@ const App: React.FC = () => {
         );
 
       case 'reports':
+        return (
+          <div className={`space-y-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold">Relatórios ESG</h1>
+                <p className={`text-sm mt-1 ${
+                  theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                }`}>
+                  Histórico e análises de contratos processados
+                </p>
+              </div>
+            </div>
+
+            {/* Lista de Relatórios */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[
+                { id: 'report-001', name: 'Shell-Upstream-Brazil-2024.pdf', date: '2024-01-15', score: 78.5, status: 'Completo' },
+                { id: 'report-002', name: 'Petrobras-Partnership-Agreement.pdf', date: '2024-01-12', score: 85.2, status: 'Completo' }
+              ].map((report) => (
+                <div key={report.id} className={`rounded-lg p-6 ${
+                  theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
+                }`}>
+                  <h3 className="font-semibold mb-2">{report.name.replace('.pdf', '')}</h3>
+                  <div className="space-y-2 text-sm">
+                    <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
+                      Data: {new Date(report.date).toLocaleDateString('pt-BR')}
+                    </p>
+                    <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
+                      Status: {report.status}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        report.score >= 80 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                        report.score >= 60 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                        'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                      }`}>
+                        Score: {report.score}
+                      </span>
+                      <button
+                        onClick={() => handleNavigate(`/analysis/${report.id}`)}
+                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-colors"
+                      >
+                        Ver Detalhes
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
       case 'compliance':
         return (
-          <ReportsCompliance
-            theme={theme}
-            onNavigate={handleNavigate}
-          />
+          <div className={`space-y-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold">Compliance ESG</h1>
+                <p className={`text-sm mt-1 ${
+                  theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                }`}>
+                  Monitoramento de conformidade com frameworks ESG
+                </p>
+              </div>
+            </div>
+
+            {/* Status Geral de Compliance */}
+            <div className={`rounded-lg p-6 ${
+              theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
+            }`}>
+              <h2 className="text-lg font-semibold mb-4">Status Geral de Compliance</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { framework: 'GRI', score: 85, status: 'Conforme' },
+                  { framework: 'SASB', score: 78, status: 'Parcial' },
+                  { framework: 'TCFD', score: 92, status: 'Conforme' },
+                  { framework: 'IPIECA', score: 76, status: 'Parcial' }
+                ].map((item) => (
+                  <div key={item.framework} className={`p-4 rounded-lg border ${
+                    theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+                  }`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold">{item.framework}</h4>
+                      <span className={`w-3 h-3 rounded-full ${
+                        item.status === 'Conforme' ? 'bg-green-500' : 'bg-yellow-500'
+                      }`} />
+                    </div>
+                    <p className={`text-2xl font-bold mb-1 ${
+                      item.score >= 80 ? 'text-green-600 dark:text-green-400' :
+                      item.score >= 60 ? 'text-yellow-600 dark:text-yellow-400' :
+                      'text-red-600 dark:text-red-400'
+                    }`}>
+                      {item.score}%
+                    </p>
+                    <p className={`text-sm ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                      {item.status}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Questões de Compliance */}
+            <div className={`rounded-lg p-6 ${
+              theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
+            }`}>
+              <h2 className="text-lg font-semibold mb-4">Questões Identificadas</h2>
+              <div className="space-y-4">
+                {[
+                  { 
+                    framework: 'SASB', 
+                    severity: 'MEDIUM', 
+                    issue: 'Falta de divulgação sobre emisssões Scope 3',
+                    action: 'Implementar sistema de monitoramento de cadeia de suprimentos'
+                  },
+                  { 
+                    framework: 'IPIECA', 
+                    severity: 'LOW', 
+                    issue: 'Relatório de biodiversidade incompleto',
+                    action: 'Atualizar indicadores de impacto na biodiversidade'
+                  }
+                ].map((issue, idx) => (
+                  <div key={idx} className={`p-4 rounded-lg border-l-4 ${
+                    issue.severity === 'HIGH' ? 'border-red-500 bg-red-50 dark:bg-red-900/20' :
+                    issue.severity === 'MEDIUM' ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' :
+                    'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                  }`}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-sm">{issue.framework}</span>
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            issue.severity === 'HIGH' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
+                            issue.severity === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                            'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                          }`}>
+                            {issue.severity}
+                          </span>
+                        </div>
+                        <p className={`text-sm mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+                          {issue.issue}
+                        </p>
+                        <p className={`text-sm font-medium ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>
+                          💡 {issue.action}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         );
 
       default:
