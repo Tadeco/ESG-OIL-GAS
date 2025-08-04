@@ -678,6 +678,7 @@ class MockApiService {
         status: 'analyzed',
         overallScore: 85.2,
         riskLevel: 'LOW'
+      }
     ];
   }
 

@@ -278,6 +278,7 @@ const App: React.FC = () => {
                 
                 return (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {allReports.map((report) => (
                       <div key={report.id} className={`rounded-lg p-6 ${
                         theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
                       }`}>
@@ -395,7 +396,6 @@ const App: React.FC = () => {
                   </div>
                 );
               })()}
-              </div>
             </div>
 
             {/* Questões de Compliance */}
