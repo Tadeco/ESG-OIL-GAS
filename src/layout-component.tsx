@@ -26,7 +26,8 @@ import {
   Scale,
   UserCircle,
   HelpCircle,
-  ChevronRight
+  ChevronRight,
+  MessageCircle
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -36,6 +37,7 @@ interface LayoutProps {
     email: string;
     role: string;
     avatar?: string;
+    loginProvider?: 'google' | 'microsoft' | 'email';
   };
   theme?: 'light' | 'dark';
   onThemeToggle?: () => void;
@@ -479,12 +481,28 @@ const Layout: React.FC<LayoutProps> = ({
                     <div className={`px-4 py-3 border-b ${
                       theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
                     }`}>
-                      <p className={`text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-                        {user.name}
-                      </p>
-                      <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                        {user.email}
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className={`text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                            {user.name}
+                          </p>
+                          <p className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {user.email}
+                          </p>
+                        </div>
+                        {user.loginProvider === 'google' && (
+                          <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 rounded text-xs">
+                            <span className="text-blue-600 dark:text-blue-400">G</span>
+                            <span className="text-blue-600 dark:text-blue-400 font-medium">Google</span>
+                          </div>
+                        )}
+                        {user.loginProvider === 'microsoft' && (
+                          <div className="flex items-center gap-1 px-2 py-1 bg-orange-100 dark:bg-orange-900/30 rounded text-xs">
+                            <Building2 className="w-3 h-3 text-orange-600 dark:text-orange-400" />
+                            <span className="text-orange-600 dark:text-orange-400 font-medium">Microsoft</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="py-2">
                       <button
@@ -506,6 +524,23 @@ const Layout: React.FC<LayoutProps> = ({
                         }`}
                       >
                         Settings
+                      </button>
+                      <button
+                        onClick={() => {
+                          const message = encodeURIComponent('Olá! Gostaria de sugerir uma atualização para o sistema OIL & GAS ESG.');
+                          window.open(`https://wa.me/5521964462281?text=${message}`, '_blank');
+                        }}
+                        className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 border-l-2 border-green-500 ${
+                          theme === 'dark' 
+                            ? 'text-green-400 hover:bg-green-900/20 hover:text-green-300 bg-green-900/10' 
+                            : 'text-green-600 hover:bg-green-50 hover:text-green-700 bg-green-50/50'
+                        }`}
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        <div className="flex flex-col">
+                          <span className="font-medium">💬 WhatsApp</span>
+                          <span className="text-xs opacity-75">Sugerir Atualização</span>
+                        </div>
                       </button>
                     </div>
                     <div className={`px-4 py-3 border-t ${

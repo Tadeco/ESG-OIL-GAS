@@ -97,7 +97,8 @@ class MockApiService {
         email: 'tadeu.santana@oilgas.com',
         role: 'Senior ESG Analyst',
         avatar: 'https://via.placeholder.com/40',
-        department: 'Sustainability & Compliance'
+        department: 'Sustainability & Compliance',
+        loginProvider: 'google'
       },
       token: 'mock-jwt-token-123'
     };

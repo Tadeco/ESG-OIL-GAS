@@ -381,10 +381,88 @@ export class PDFAnalyzer {
   }
   
   private static generateWeaknesses(category: string, count: number): string[] {
-    if (count > 5) return [`Múltiplos problemas identificados (${count})`, 'Situação crítica documentada'];
-    if (count > 2) return [`Alguns problemas encontrados (${count})`, 'Necessita atenção'];
-    if (count > 0) return [`Pontos de melhoria identificados (${count})`];
-    return ['Margem para melhorias'];
+    const suggestions = {
+      environmental: {
+        high: [
+          `Múltiplos problemas ambientais críticos identificados (${count})`,
+          '🔧 AÇÃO IMEDIATA: Implementar sistema de gestão ambiental certificado ISO 14001',
+          '🌱 SUGESTÃO: Estabelecer metas de neutralidade de carbono com cronograma definido',
+          '💡 RECOMENDAÇÃO: Investir em tecnologias de captura e armazenamento de CO2'
+        ],
+        medium: [
+          `Problemas ambientais moderados encontrados (${count})`,
+          '🔧 MELHORIA: Atualizar planos de monitoramento ambiental',
+          '🌱 SUGESTÃO: Implementar programa de compensação de emissões',
+          '💡 RECOMENDAÇÃO: Certificar-se com padrões internacionais (GRI, TCFD)'
+        ],
+        low: [
+          `Pontos de melhoria ambiental identificados (${count})`,
+          '🔧 OTIMIZAÇÃO: Revisar procedimentos de prevenção à poluição',
+          '🌱 SUGESTÃO: Implementar sistema de economia circular'
+        ],
+        minimal: [
+          'Margem para melhorias ambientais',
+          '🔧 PREVENÇÃO: Manter certificações ambientais atualizadas',
+          '🌱 SUGESTÃO: Investir em energias renováveis'
+        ]
+      },
+      social: {
+        high: [
+          `Problemas sociais críticos documentados (${count})`,
+          '🔧 AÇÃO IMEDIATA: Revisar política de relacionamento comunitário',
+          '👥 SUGESTÃO: Implementar programa robusto de consulta às partes interessadas',
+          '💡 RECOMENDAÇÃO: Criar fundo de desenvolvimento social para comunidades impactadas'
+        ],
+        medium: [
+          `Questões sociais moderadas identificadas (${count})`,
+          '🔧 MELHORIA: Fortalecer canais de comunicação com comunidades',
+          '👥 SUGESTÃO: Implementar programa de capacitação local',
+          '💡 RECOMENDAÇÃO: Estabelecer indicadores de satisfação comunitária'
+        ],
+        low: [
+          `Oportunidades de melhoria social encontradas (${count})`,
+          '🔧 OTIMIZAÇÃO: Expandir programas de contratação local',
+          '👥 SUGESTÃO: Criar programa de bolsas educacionais'
+        ],
+        minimal: [
+          'Potencial para aprimoramento social',
+          '🔧 PREVENÇÃO: Manter diálogo contínuo com stakeholders',
+          '👥 SUGESTÃO: Investir em desenvolvimento de fornecedores locais'
+        ]
+      },
+      governance: {
+        high: [
+          `Falhas críticas de governança identificadas (${count})`,
+          '🔧 AÇÃO IMEDIATA: Reestruturar sistema de compliance e controles internos',
+          '🏛️ SUGESTÃO: Implementar comitê independente de supervisão ESG',
+          '💡 RECOMENDAÇÃO: Estabelecer programa robusto de ética e integridade'
+        ],
+        medium: [
+          `Deficiências de governança moderadas (${count})`,
+          '🔧 MELHORIA: Fortalecer processo de auditoria interna',
+          '🏛️ SUGESTÃO: Implementar sistema de gestão de riscos ESG',
+          '💡 RECOMENDAÇÃO: Aumentar transparência com relatórios públicos'
+        ],
+        low: [
+          `Pontos de aprimoramento em governança (${count})`,
+          '🔧 OTIMIZAÇÃO: Revisar políticas de transparência',
+          '🏛️ SUGESTÃO: Implementar dashboard de indicadores ESG em tempo real'
+        ],
+        minimal: [
+          'Oportunidades de melhoria em governança',
+          '🔧 PREVENÇÃO: Manter certificações de compliance atualizadas',
+          '🏛️ SUGESTÃO: Investir em treinamentos de ética corporativa'
+        ]
+      }
+    };
+
+    const categoryData = suggestions[category as keyof typeof suggestions];
+    if (!categoryData) return ['Análise não disponível para esta categoria'];
+
+    if (count > 5) return categoryData.high;
+    if (count > 2) return categoryData.medium;
+    if (count > 0) return categoryData.low;
+    return categoryData.minimal;
   }
   
   private static generateOverallRisks(score: number): any[] {

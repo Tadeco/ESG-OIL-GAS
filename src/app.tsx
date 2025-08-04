@@ -17,6 +17,7 @@ interface User {
   role: string;
   avatar?: string;
   department?: string;
+  loginProvider?: 'google' | 'microsoft' | 'email';
 }
 
 const App: React.FC = () => {

@@ -115,37 +115,84 @@ const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        {/* Explicação do Sistema */}
-        <div className={`mt-6 p-4 rounded-lg ${
-          theme === 'dark' ? 'bg-blue-900/20 border border-blue-800/30' : 'bg-blue-50 border border-blue-200'
+        {/* Explicação Completa do Sistema */}
+        <div className={`mt-6 p-6 rounded-lg ${
+          theme === 'dark' ? 'bg-gradient-to-r from-blue-900/20 to-green-900/20 border border-blue-800/30' : 'bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200'
         }`}>
-          <div className="flex items-start gap-3">
-            <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className={`font-semibold text-sm mb-2 ${
+          <div className="flex items-start gap-4">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-green-500 flex-shrink-0">
+              <Shield className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className={`font-bold text-lg mb-3 ${
                 theme === 'dark' ? 'text-blue-400' : 'text-blue-800'
               }`}>
-                Sobre este Sistema
+                🏢 Sistema de Análise ESG para Petróleo & Gás
               </h3>
-              <p className={`text-sm leading-relaxed ${
-                theme === 'dark' ? 'text-blue-300' : 'text-blue-700'
-              }`}>
-                Este sistema de análise ESG foi desenvolvido especificamente para o setor de <strong>petróleo e gás</strong>, 
-                podendo ser adaptado para qualquer empresa do setor. Utiliza inteligência artificial avançada (GPT-4) 
-                para analisar contratos e identificar riscos ambientais, sociais e de governança.
-              </p>
               
-              <div className={`mt-3 p-3 rounded border-l-4 ${
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <p className={`text-sm leading-relaxed mb-3 ${
+                    theme === 'dark' ? 'text-blue-300' : 'text-blue-700'
+                  }`}>
+                    <strong>Desenvolvido por:</strong> Eng. Tadeu Santana<br/>
+                    <strong>Finalidade:</strong> Demonstração de expertise em ESG para recrutadores do setor O&G
+                  </p>
+                  
+                  <h4 className={`font-semibold text-sm mb-2 ${
+                    theme === 'dark' ? 'text-green-400' : 'text-green-700'
+                  }`}>
+                    🎯 Funcionalidades Principais:
+                  </h4>
+                  <ul className={`text-sm space-y-1 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    <li>• Upload e análise de contratos em PDF</li>
+                    <li>• Análise ESG com IA (simulação GPT-4)</li>
+                    <li>• Scores automáticos para Environmental, Social, Governance</li>
+                    <li>• Relatórios detalhados com download</li>
+                    <li>• Compliance com GRI, SASB, TCFD, IPIECA</li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className={`font-semibold text-sm mb-2 ${
+                    theme === 'dark' ? 'text-purple-400' : 'text-purple-700'
+                  }`}>
+                    🔧 Tecnologias Utilizadas:
+                  </h4>
+                  <ul className={`text-sm space-y-1 mb-3 ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    <li>• React 18 + TypeScript</li>
+                    <li>• Vite + Tailwind CSS</li>
+                    <li>• PDF.js para leitura real de PDFs</li>
+                    <li>• Análise baseada em keywords ESG</li>
+                    <li>• Deploy no Vercel via GitHub</li>
+                  </ul>
+                  
+                  <h4 className={`font-semibold text-sm mb-2 ${
+                    theme === 'dark' ? 'text-orange-400' : 'text-orange-700'
+                  }`}>
+                    🛢️ Aplicação Setorial:
+                  </h4>
+                  <p className={`text-sm ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
+                    Adaptável para <strong>qualquer empresa</strong> de petróleo e gás: Shell, Petrobras, BP, Total, Equinor, etc.
+                  </p>
+                </div>
+              </div>
+              
+              <div className={`p-4 rounded-lg border-l-4 ${
                 theme === 'dark' 
                   ? 'border-yellow-500 bg-yellow-900/20' 
                   : 'border-yellow-500 bg-yellow-50'
               }`}>
-                <p className={`text-xs ${
+                <p className={`text-sm font-medium ${
                   theme === 'dark' ? 'text-yellow-300' : 'text-yellow-800'
                 }`}>
-                  <strong>Importante:</strong> Este projeto de demonstração utiliza dados simulados e alguns dados reais 
-                  da Shell para fins educacionais e de portfólio. Desenvolvido por <strong>Eng. Tadeu Santana</strong> 
-                  como showcase de competências em IA aplicada ao setor energético.
+                  📋 <strong>Dados de Demonstração:</strong> Este sistema utiliza diretrizes e exemplos reais da Shell, mas pode ser configurado para qualquer operadora. Os contratos simulados incluem cenários realistas de upstream, downstream e questões ESG típicas do setor.
                 </p>
               </div>
             </div>
