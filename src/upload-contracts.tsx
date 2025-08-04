@@ -225,11 +225,27 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
           return newFiles;
         });
 
-        // Email já é enviado automaticamente no mock-api.ts durante a análise
-        // Não precisa enviar novamente aqui
-        console.log('📧 EMAIL JÁ FOI ENVIADO AUTOMATICAMENTE DURANTE A ANÁLISE');
-        console.log('📧 Destinatário:', user?.email);
-        console.log('📊 Score ESG:', updatedFile.result?.overallScore);
+        // CONFIRMAÇÃO VISUAL PARA O USUÁRIO
+        if (user?.email && updatedFile.result) {
+          const message = `
+✅ ANÁLISE ESG CONCLUÍDA!
+
+📄 Arquivo: ${updatedFile.file.name}
+📊 Score ESG Geral: ${updatedFile.result.overallScore}/100
+🌱 Ambiental: ${updatedFile.result.categories.environmental.score}/100
+👥 Social: ${updatedFile.result.categories.social.score}/100
+🏡 Governança: ${updatedFile.result.categories.governance.score}/100
+
+📧 SIMULAÇÃO: Relatório seria enviado para ${user.email}
+⚠️ DEMO: Sistema de demonstração - Email não é enviado de verdade
+
+👁️ Clique em "Ver Detalhes" para relatório completo
+          `;
+          
+          setTimeout(() => {
+            alert(message);
+          }, 1000);
+        }
         
         // Verificação adicional após 1 segundo
         setTimeout(() => {
@@ -258,45 +274,8 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
     }
   };
 
-  // ENVIO REAL por email usando a nova API
-  const sendReportByEmail = async (file: UploadedFile, userEmail: string) => {
-    if (!user || !file.result) return;
-    
-    console.log('📧 ENVIANDO RELATÓRIO POR EMAIL...');
-    console.log('📄 Arquivo:', file.file.name);
-    console.log('📧 Destinatário:', userEmail);
-    console.log('📊 Score:', file.result?.overallScore);
-    
-    try {
-      const emailResult = await mockApi.sendReportByEmail(
-        file.contractId!,
-        userEmail,
-        user.name,
-        file.result
-      );
-      
-      if (emailResult.success) {
-        const message = `
-✅ RELATÓRIO ENVIADO COM SUCESSO!
-
-📧 Para: ${userEmail}
-📄 Arquivo: ${file.file.name}
-📊 Score ESG: ${file.result?.overallScore}/100
-⏰ Enviado em: ${new Date().toLocaleString('pt-BR')}
-
-✅ ${emailResult.message}
-        `;
-        
-        alert(message);
-        console.log('✅ EMAIL ENVIADO COM SUCESSO');
-      } else {
-        alert(`❌ Erro ao enviar email: ${emailResult.message}`);
-      }
-    } catch (error) {
-      console.error('Erro ao enviar email:', error);
-      alert('❌ Erro ao enviar relatório por email. Tente novamente.');
-    }
-  };
+  // FUNÇÃO REMOVIDA - Email é processado durante a análise
+  // Mantendo apenas para compatibilidade
 
   // Remove file
   const removeFile = (fileId: string) => {

@@ -178,6 +178,9 @@ class MockApiService {
         // Adicionar identificador único baseado no arquivo
         result.fileName = `${file.name} (${new Date().getTime()})`;
         
+        // SALVAR RESULTADO NO LOCALSTORAGE PARA PERSISTÊNCIA
+        this.saveAnalysisResult(contractId, result);
+        
         // NOVO: ENVIO AUTOMÁTICO POR EMAIL APÓS ANÁLISE
         if (userEmail && userName) {
           console.log('📧 INICIANDO ENVIO AUTOMÁTICO POR EMAIL...');
@@ -297,6 +300,54 @@ class MockApiService {
     console.log('💡 Recomendações:', result.recommendations.length);
     
     return result;
+  }
+
+  // ======= SISTEMA DE PERSISTÊNCIA DE RESULTADOS =======
+  
+  private saveAnalysisResult(contractId: string, result: ESGAnalysisResult): void {
+    try {
+      const savedResults = this.getSavedResults();
+      savedResults[contractId] = result;
+      localStorage.setItem('esg-analysis-results', JSON.stringify(savedResults));
+      console.log('💾 RESULTADO SALVO NO LOCALSTORAGE:', contractId);
+    } catch (error) {
+      console.error('❌ Erro ao salvar resultado:', error);
+    }
+  }
+  
+  private getSavedResults(): Record<string, ESGAnalysisResult> {
+    try {
+      const saved = localStorage.getItem('esg-analysis-results');
+      return saved ? JSON.parse(saved) : {};
+    } catch (error) {
+      console.error('❌ Erro ao carregar resultados salvos:', error);
+      return {};
+    }
+  }
+  
+  public getSavedAnalysis(contractId: string): ESGAnalysisResult | null {
+    try {
+      const savedResults = this.getSavedResults();
+      const result = savedResults[contractId];
+      if (result) {
+        console.log('💾 RESULTADO RECUPERADO DO LOCALSTORAGE:', contractId);
+        return result;
+      }
+      console.log('⚠️ RESULTADO NÃO ENCONTRADO NO LOCALSTORAGE:', contractId);
+      return null;
+    } catch (error) {
+      console.error('❌ Erro ao recuperar resultado salvo:', error);
+      return null;
+    }
+  }
+  
+  public clearSavedResults(): void {
+    try {
+      localStorage.removeItem('esg-analysis-results');
+      console.log('🗑️ RESULTADOS SALVOS LIMPOS DO LOCALSTORAGE');
+    } catch (error) {
+      console.error('❌ Erro ao limpar resultados:', error);
+    }
   }
 
   // ======= FUNÇÕES AUXILIARES PARA GERAR CONTEÚDO REALISTA =======
@@ -639,15 +690,17 @@ class MockApiService {
     const success = true;
     
     if (success) {
-      console.log('✅ EMAIL ENVIADO COM SUCESSO!');
-      console.log('📧 Relatório ESG enviado para:', userEmail);
+      console.log('✅ EMAIL SIMULADO ENVIADO COM SUCESSO!');
+      console.log('📧 Relatório ESG simulado enviado para:', userEmail);
       console.log('📋 Assunto: "Relatório ESG - " + reportData.fileName');
       console.log('💌 Conteúdo inclui: Score ESG, Riscos Identificados, Recomendações');
       console.log('📎 Anexo: Relatório PDF detalhado');
+      console.log('⚠️ ATENÇÃO: Este é um SISTEMA DE DEMONSTRAÇÃO - Email não é enviado de verdade!');
+      console.log('💡 Para implementação real, integrar com SendGrid, Nodemailer ou similar');
       
       return {
         success: true,
-        message: `Relatório enviado com sucesso para ${userEmail}`
+        message: `SIMULAÇÃO: Relatório seria enviado para ${userEmail} (Sistema de demonstração)`
       };
     } else {
       console.log('❌ ERRO NO ENVIO DO EMAIL');

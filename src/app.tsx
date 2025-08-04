@@ -72,9 +72,15 @@ const App: React.FC = () => {
   // Função removida - não usamos mais social login
 
   const handleLogout = (): void => {
+    // Limpar dados do usuário
     setUser(null);
     localStorage.removeItem('oilgas-user');
     localStorage.removeItem('oilgas-token');
+    
+    // LIMPAR RESULTADOS DE ANÁLISE ESG AO FAZER LOGOUT
+    mockApi.clearSavedResults();
+    
+    console.log('💪 LOGOUT REALIZADO - DADOS LIMPOS');
     setCurrentRoute('login');
   };
 

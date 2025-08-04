@@ -44,10 +44,25 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
   useEffect(() => {
     const loadAnalysis = async () => {
       try {
-        const result = await mockApi.analyzeContract(contractId);
-        setAnalysis(result);
+        console.log('🔍 CARREGANDO ANÁLISE PARA CONTRACT ID:', contractId);
+        
+        // PRIMEIRO: Tentar recuperar do localStorage
+        const savedResult = mockApi.getSavedAnalysis(contractId);
+        if (savedResult) {
+          console.log('✅ RESULTADO RECUPERADO DO LOCALSTORAGE!');
+          console.log('📊 Score Overall:', savedResult.overallScore);
+          console.log('🌱 Environmental:', savedResult.categories.environmental.score);
+          console.log('👥 Social:', savedResult.categories.social.score);
+          console.log('🏡 Governance:', savedResult.categories.governance.score);
+          setAnalysis(savedResult);
+        } else {
+          console.log('⚠️ RESULTADO NÃO ENCONTRADO - GERANDO NOVO');
+          // Se não encontrar, gerar uma nova análise
+          const result = await mockApi.analyzeContract(contractId, `contract-${contractId}.pdf`, 1000000);
+          setAnalysis(result);
+        }
       } catch (error) {
-        console.error('Error loading analysis:', error);
+        console.error('❌ Error loading analysis:', error);
       } finally {
         setLoading(false);
       }
@@ -179,21 +194,21 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
       {/* Notificação de Email Enviado Automaticamente */}
       <div className={`p-4 rounded-lg border-l-4 mb-6 ${
         theme === 'dark' 
-          ? 'border-green-500 bg-green-900/20' 
-          : 'border-green-500 bg-green-50'
+          ? 'border-blue-500 bg-blue-900/20' 
+          : 'border-blue-500 bg-blue-50'
       }`}>
         <div className="flex items-start gap-3">
-          <Mail className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+          <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
           <div>
             <h4 className={`font-semibold text-sm mb-1 ${
-              theme === 'dark' ? 'text-green-400' : 'text-green-800'
+              theme === 'dark' ? 'text-blue-400' : 'text-blue-800'
             }`}>
-              📧 Relatório Enviado Automaticamente
+              📧 Sistema de Demonstração - Email
             </h4>
             <p className={`text-sm ${
-              theme === 'dark' ? 'text-green-300' : 'text-green-700'
+              theme === 'dark' ? 'text-blue-300' : 'text-blue-700'
             }`}>
-              O relatório detalhado desta análise ESG já foi enviado automaticamente para o seu email após a conclusão da análise. Verifique sua caixa de entrada.
+              <strong>DEMO:</strong> Em um sistema real, o relatório seria enviado automaticamente para seu email após a análise. Este é um projeto de portfólio/demonstração.
             </p>
           </div>
         </div>
