@@ -14,9 +14,12 @@ import {
   Zap,
   BarChart3,
   Eye,
-  Download
+  Download,
+  FileDown,
+  BarChart
 } from 'lucide-react';
 import { mockApi } from './mock-api';
+import DetailedReport from './detailed-report';
 
 interface UploadContractsProps {
   theme?: 'light' | 'dark';
@@ -39,6 +42,8 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
 }) => {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [dragActive, setDragActive] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<UploadedFile | null>(null);
+  const [showDetailedReport, setShowDetailedReport] = useState(false);
   const [metadata, setMetadata] = useState({
     contractType: '',
     region: '',
@@ -238,26 +243,38 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
     setFiles(prev => prev.filter(f => f.id !== fileId));
   };
 
-  // View analysis results - APENAS MODAL, SEM NAVEGAÇÃO
+  // View analysis results - RELATÓRIO DETALHADO
   const viewResults = (file: UploadedFile) => {
-    console.log('🔍 MOSTRANDO RESULTADOS - SEM REDIRECIONAMENTO');
-    console.log('📊 Arquivo:', file.file.name);
+    console.log('📊 ABRINDO RELATÓRIO DETALHADO');
+    console.log('📄 Arquivo:', file.file.name);
     console.log('📊 Resultado completo:', file.result);
     
     if (file.result && file.contractId) {
-      // Criar modal detalhado com os resultados
+      setSelectedFile(file);
+      setShowDetailedReport(true);
+      console.log('✅ RELATÓRIO DETALHADO ABERTO');
+    } else {
+      console.log('❌ ERRO: Arquivo sem resultados');
+      alert(`❌ ERRO: Resultados não disponíveis para ${file.file.name}\n\nStatus: ${file.status}\nTente fazer upload novamente.`);
+    }
+  };
+
+  // Quick view results - MODAL RÁPIDO
+  const quickViewResults = (file: UploadedFile) => {
+    console.log('👁️ VISUALIZAÇÃO RÁPIDA');
+    
+    if (file.result && file.contractId) {
       const result = file.result;
       const envScore = result.categories?.environmental?.score || 0;
       const socScore = result.categories?.social?.score || 0;
       const govScore = result.categories?.governance?.score || 0;
       
       const message = `
-🏢 ANÁLISE ESG COMPLETA
+🏢 ANÁLISE ESG RÁPIDA
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📄 ARQUIVO: ${file.file.name}
 📅 DATA: ${new Date(result.uploadDate).toLocaleString('pt-BR')}
-🆔 ID: ${result.contractId}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━
 📊 SCORES ESG
@@ -272,15 +289,12 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
 🔍 CONFIABILIDADE: ${(result.confidence * 100).toFixed(1)}%
 ✅ Baseado no conteúdo REAL do PDF
 
-🤖 Análise realizada com IA avançada
-📋 Frameworks: GRI, SASB, TCFD, IPIECA
+💡 Para ver relatório completo com download, clique em "Relatório Detalhado"
       `;
       
       alert(message);
-      console.log('✅ RESULTADOS EXIBIDOS COM SUCESSO - USUÁRIO PERMANECE NA PÁGINA');
     } else {
-      console.log('❌ ERRO: Arquivo sem resultados');
-      alert(`❌ ERRO: Resultados não disponíveis para ${file.file.name}\n\nStatus: ${file.status}\nTente fazer upload novamente.`);
+      alert(`❌ ERRO: Resultados não disponíveis para ${file.file.name}`);
     }
   };
 
@@ -534,23 +548,18 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
                     {file.status === 'completed' && (
                       <>
                         <button
+                          onClick={() => quickViewResults(file)}
+                          className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm"
+                        >
+                          <Eye className="w-4 h-4" />
+                          Resumo
+                        </button>
+                        <button
                           onClick={() => viewResults(file)}
                           className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
                         >
-                          <Eye className="w-4 h-4" />
-                          Ver Resultados
-                        </button>
-                        {/* Debug button - temporary */}
-                        <button
-                          onClick={() => {
-                            console.log('DEBUG - Arquivo completo:', file);
-                            console.log('DEBUG - Tem resultado?', !!file.result);
-                            console.log('DEBUG - Resultado completo:', file.result);
-                            alert(`Arquivo: ${file.file.name}\nStatus: ${file.status}\nTem resultado: ${!!file.result}\nContractId: ${file.contractId}`);
-                          }}
-                          className="px-2 py-1 bg-blue-500 text-white text-xs rounded"
-                        >
-                          DEBUG
+                          <BarChart className="w-4 h-4" />
+                          Relatório Detalhado
                         </button>
                       </>
                     )}
@@ -721,6 +730,20 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
           </ul>
         </div>
       </div>
+
+      {/* Detailed Report Modal */}
+      {showDetailedReport && selectedFile && selectedFile.result && (
+        <DetailedReport
+          result={selectedFile.result}
+          fileName={selectedFile.file.name}
+          onClose={() => {
+            setShowDetailedReport(false);
+            setSelectedFile(null);
+            console.log('🔒 RELATÓRIO DETALHADO FECHADO');
+          }}
+          theme={theme}
+        />
+      )}
     </div>
   );
 };
