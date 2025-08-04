@@ -315,6 +315,20 @@ const Layout: React.FC<LayoutProps> = ({
                   {user.role}
                 </p>
               </div>
+              <button
+                onClick={() => {
+                  const message = encodeURIComponent('Olá! Gostaria de sugerir uma atualização para o sistema OIL & GAS ESG.');
+                  window.open(`https://wa.me/5521964462281?text=${message}`, '_blank');
+                }}
+                className={`p-2 rounded-full transition-all duration-200 flex items-center justify-center ${
+                  theme === 'dark' 
+                    ? 'bg-green-900/30 hover:bg-green-800/40 text-green-400 hover:text-green-300' 
+                    : 'bg-green-100 hover:bg-green-200 text-green-600 hover:text-green-700'
+                }`}
+                title="WhatsApp - Sugerir Atualização"
+              >
+                <MessageCircle className="w-5 h-5" />
+              </button>
             </div>
           </div>
         )}
@@ -524,23 +538,6 @@ const Layout: React.FC<LayoutProps> = ({
                         }`}
                       >
                         Settings
-                      </button>
-                      <button
-                        onClick={() => {
-                          const message = encodeURIComponent('Olá! Gostaria de sugerir uma atualização para o sistema OIL & GAS ESG.');
-                          window.open(`https://wa.me/5521964462281?text=${message}`, '_blank');
-                        }}
-                        className={`w-full px-4 py-2 text-left text-sm transition-colors flex items-center gap-2 border-l-2 border-green-500 ${
-                          theme === 'dark' 
-                            ? 'text-green-400 hover:bg-green-900/20 hover:text-green-300 bg-green-900/10' 
-                            : 'text-green-600 hover:bg-green-50 hover:text-green-700 bg-green-50/50'
-                        }`}
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        <div className="flex flex-col">
-                          <span className="font-medium">💬 WhatsApp</span>
-                          <span className="text-xs opacity-75">Sugerir Atualização</span>
-                        </div>
                       </button>
                     </div>
                     <div className={`px-4 py-3 border-t ${

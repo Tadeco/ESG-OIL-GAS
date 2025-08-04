@@ -70,8 +70,13 @@ const App: React.FC = () => {
       // Simular OAuth
       await new Promise(resolve => setTimeout(resolve, 1500));
       const result = await mockApi.loginWithGoogle();
-      setUser(result.user);
-      localStorage.setItem('oilgas-user', JSON.stringify(result.user));
+      // Atualizar o loginProvider baseado no botão clicado
+      const userWithProvider = {
+        ...result.user,
+        loginProvider: provider
+      };
+      setUser(userWithProvider);
+      localStorage.setItem('oilgas-user', JSON.stringify(userWithProvider));
       localStorage.setItem('oilgas-token', result.token);
       setCurrentRoute('dashboard');
     } catch (error) {
