@@ -214,12 +214,33 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
 
   // View analysis results
   const viewResults = (file: UploadedFile) => {
-    console.log('Tentando ver resultados para arquivo:', file);
+    console.log('🔍 VISUALIZANDO RESULTADOS PARA:', file.file.name);
+    console.log('📊 Resultado completo:', file.result);
+    
     if (file.result && file.contractId) {
-      console.log('Navegando para análise:', `/analysis/${file.contractId}`);
-      onNavigate(`analysis`); // Simplificado para testar se a navegação funciona
+      // Mostrar alert com resumo dos resultados
+      const result = file.result;
+      const message = `
+📊 ANÁLISE ESG CONCLUÍDA - ${file.file.name}
+
+🎯 SCORE GERAL: ${result.overallScore}/100
+
+📈 SCORES DETALHADOS:
+🌱 Ambiental: ${result.categories?.environmental?.score || 'N/A'}
+👥 Social: ${result.categories?.social?.score || 'N/A'}  
+🏛️ Governança: ${result.categories?.governance?.score || 'N/A'}
+
+🔍 Confiança: ${(result.confidence * 100).toFixed(1)}%
+📅 Data: ${new Date(result.uploadDate).toLocaleString('pt-BR')}
+
+✅ Análise baseada no conteúdo real do PDF!
+      `;
+      
+      alert(message);
+      console.log('📊 RESULTADO DETALHADO MOSTRADO AO USUÁRIO');
     } else {
-      console.log('Arquivo não tem resultados ou contractId:', file);
+      console.log('❌ Arquivo não tem resultados ou contractId:', file);
+      alert('⚠️ Resultados não disponíveis para este arquivo');
     }
   };
 
@@ -240,15 +261,15 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
   const getStatusText = (status: string) => {
     switch (status) {
       case 'uploading':
-        return 'Fazendo upload...';
+        return '📤 Fazendo upload...';
       case 'analyzing':
-        return 'Analisando com IA...';
+        return '🤖 Analisando conteúdo com IA...';
       case 'completed':
-        return 'Análise concluída';
+        return '✅ Análise concluída - Clique em "Ver Resultados"';
       case 'error':
-        return 'Erro no processamento';
+        return '❌ Erro no processamento';
       default:
-        return 'Pendente';
+        return '⏳ Pendente';
     }
   };
 
@@ -440,7 +461,12 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
                         {file.file.name}
                       </p>
                       <div className="flex items-center gap-4 mt-1">
-                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                        <p className={`text-sm font-medium ${
+                          file.status === 'analyzing' ? 'text-blue-600 dark:text-blue-400' :
+                          file.status === 'completed' ? 'text-green-600 dark:text-green-400' :
+                          file.status === 'error' ? 'text-red-600 dark:text-red-400' :
+                          theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
                           {getStatusText(file.status)}
                         </p>
                         <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -472,7 +498,7 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
                           className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
                         >
                           <Eye className="w-4 h-4" />
-                          Ver Análise
+                          Ver Resultados
                         </button>
                         {/* Debug button - temporary */}
                         <button
@@ -555,6 +581,9 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
                             }`}>
                               {overallScore >= 80 ? '🟢 EXCELENTE' :
                                overallScore >= 60 ? '🟡 MÉDIO' : '🔴 CRÍTICO'}
+                            </p>
+                            <p className="text-xs mt-2 text-blue-600 dark:text-blue-400 font-semibold">
+                              📊 Baseado na análise real do PDF
                             </p>
                           </div>
                         </div>
