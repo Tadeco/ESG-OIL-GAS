@@ -132,22 +132,48 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
           } : f
         ));
 
-        // Start analysis
-        console.log('Iniciando análise ESG...');
-        const analysisResult = await mockApi.analyzeContract(uploadResult.contractId, file.name);
-        console.log('Análise concluída:', analysisResult);
+        // Start analysis - VERSÃO ROBUSTA
+        console.log('🎯 INICIANDO ANÁLISE ESG ROBUSTA...');
+        console.log('📄 Arquivo:', file.name);
+        console.log('📏 Tamanho:', file.size, 'bytes');
+        console.log('🆔 Contract ID:', uploadResult.contractId);
+        
+        const analysisResult = await mockApi.analyzeContract(uploadResult.contractId, file.name, file.size);
+        
+        console.log('✅ ANÁLISE CONCLUÍDA - Resultado:', analysisResult);
+        console.log('📊 Score recebido:', analysisResult?.overallScore);
+        
+        // Garantir que o estado seja atualizado FORÇADAMENTE
+        const updatedFile = {
+          ...files.find(f => f.id === fileId)!,
+          status: 'completed' as const,
+          result: analysisResult,
+          contractId: uploadResult.contractId
+        };
+        
+        console.log('🔄 FORÇANDO ATUALIZAÇÃO DO ESTADO...');
+        console.log('📁 Arquivo atualizado:', updatedFile);
         
         setFiles(prev => {
           const newFiles = prev.map(f => 
-            f.id === fileId ? { 
-              ...f, 
-              status: 'completed',
-              result: analysisResult
-            } : f
+            f.id === fileId ? updatedFile : f
           );
-          console.log('Estado atualizado - arquivos:', newFiles);
+          console.log('📋 NOVO ESTADO DOS ARQUIVOS:', newFiles);
+          console.log('🎯 Arquivo específico atualizado:', newFiles.find(f => f.id === fileId));
           return newFiles;
         });
+        
+        // Verificação adicional após 1 segundo
+        setTimeout(() => {
+          console.log('🔍 VERIFICAÇÃO PÓS-ATUALIZAÇÃO...');
+          setFiles(currentFiles => {
+            console.log('📊 Estado atual dos arquivos:', currentFiles);
+            const targetFile = currentFiles.find(f => f.id === fileId);
+            console.log('🎯 Arquivo target encontrado:', targetFile);
+            console.log('✅ Tem resultado?', !!targetFile?.result);
+            return currentFiles;
+          });
+        }, 1000);
 
         console.log('Processo completo para arquivo:', file.name);
 
@@ -471,43 +497,116 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
                   </div>
                 )}
 
-                {/* Quick Results Preview */}
-                {file.result ? (
-                  <div className="mt-4 grid grid-cols-3 gap-4">
-                    {console.log('Renderizando resultados para arquivo:', file.file.name, 'Resultado:', file.result)}
-                    <div className={`text-center p-3 rounded-lg ${
-                      theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
-                    }`}>
-                      <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                        {file.result.categories?.environmental?.score || 'N/A'}
-                      </p>
-                      <p className="text-xs text-gray-500">Environmental</p>
-                    </div>
-                    <div className={`text-center p-3 rounded-lg ${
-                      theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
-                    }`}>
-                      <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                        {file.result.categories?.social?.score || 'N/A'}
-                      </p>
-                      <p className="text-xs text-gray-500">Social</p>
-                    </div>
-                    <div className={`text-center p-3 rounded-lg ${
-                      theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
-                    }`}>
-                      <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                        {file.result.categories?.governance?.score || 'N/A'}
-                      </p>
-                      <p className="text-xs text-gray-500">Governance</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                      {console.log('Nenhum resultado encontrado para arquivo:', file.file.name, 'Status:', file.status, 'Result:', file.result)}
-                      ⚠️ Resultados da análise não foram carregados. Status: {file.status}
-                    </p>
-                  </div>
-                )}
+                {/* RENDERIZAÇÃO ROBUSTA DOS RESULTADOS */}
+                {(() => {
+                  console.log('🎨 RENDERIZANDO ARQUIVO:', file.file.name);
+                  console.log('📊 Status:', file.status);
+                  console.log('✅ Tem resultado?', !!file.result);
+                  console.log('📋 Resultado completo:', file.result);
+                  
+                  if (file.status === 'completed' && file.result) {
+                    const envScore = file.result.categories?.environmental?.score;
+                    const socScore = file.result.categories?.social?.score;
+                    const govScore = file.result.categories?.governance?.score;
+                    const overallScore = file.result.overallScore;
+                    
+                    console.log('🎯 Scores extraídos - Env:', envScore, 'Soc:', socScore, 'Gov:', govScore, 'Overall:', overallScore);
+                    
+                    return (
+                      <div className="mt-4">
+                        {/* Score Overall Destacado */}
+                        <div className={`mb-4 p-4 rounded-lg border-2 ${
+                          overallScore >= 80 ? 'border-green-500 bg-green-50 dark:bg-green-900/20' :
+                          overallScore >= 60 ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' :
+                          'border-red-500 bg-red-50 dark:bg-red-900/20'
+                        }`}>
+                          <div className="text-center">
+                            <p className={`text-4xl font-bold ${
+                              overallScore >= 80 ? 'text-green-600 dark:text-green-400' :
+                              overallScore >= 60 ? 'text-yellow-600 dark:text-yellow-400' :
+                              'text-red-600 dark:text-red-400'
+                            }`}>
+                              {overallScore?.toFixed(1) || 'N/A'}
+                            </p>
+                            <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">
+                              SCORE ESG GERAL
+                            </p>
+                            <p className={`text-xs mt-1 ${
+                              overallScore >= 80 ? 'text-green-700 dark:text-green-300' :
+                              overallScore >= 60 ? 'text-yellow-700 dark:text-yellow-300' :
+                              'text-red-700 dark:text-red-300'
+                            }`}>
+                              {overallScore >= 80 ? '🟢 EXCELENTE' :
+                               overallScore >= 60 ? '🟡 MÉDIO' : '🔴 CRÍTICO'}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Scores Detalhados */}
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className={`text-center p-3 rounded-lg border ${
+                            theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'
+                          }`}>
+                            <p className={`text-2xl font-bold ${
+                              envScore >= 80 ? 'text-green-600 dark:text-green-400' :
+                              envScore >= 60 ? 'text-yellow-600 dark:text-yellow-400' :
+                              'text-red-600 dark:text-red-400'
+                            }`}>
+                              {envScore || 'N/A'}
+                            </p>
+                            <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">AMBIENTAL</p>
+                            <p className="text-xs text-gray-500">Environmental</p>
+                          </div>
+                          <div className={`text-center p-3 rounded-lg border ${
+                            theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'
+                          }`}>
+                            <p className={`text-2xl font-bold ${
+                              socScore >= 80 ? 'text-blue-600 dark:text-blue-400' :
+                              socScore >= 60 ? 'text-yellow-600 dark:text-yellow-400' :
+                              'text-red-600 dark:text-red-400'
+                            }`}>
+                              {socScore || 'N/A'}
+                            </p>
+                            <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">SOCIAL</p>
+                            <p className="text-xs text-gray-500">Social</p>
+                          </div>
+                          <div className={`text-center p-3 rounded-lg border ${
+                            theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200'
+                          }`}>
+                            <p className={`text-2xl font-bold ${
+                              govScore >= 80 ? 'text-purple-600 dark:text-purple-400' :
+                              govScore >= 60 ? 'text-yellow-600 dark:text-yellow-400' :
+                              'text-red-600 dark:text-red-400'
+                            }`}>
+                              {govScore || 'N/A'}
+                            </p>
+                            <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">GOVERNANÇA</p>
+                            <p className="text-xs text-gray-500">Governance</p>
+                          </div>
+                        </div>
+                        
+                        {/* Indicador de Sucesso */}
+                        <div className="mt-3 p-2 bg-green-100 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded-lg">
+                          <p className="text-xs text-green-800 dark:text-green-200 text-center font-semibold">
+                            ✅ ANÁLISE ESG CONCLUÍDA COM SUCESSO!
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  } else {
+                    console.log('❌ Sem resultados - Status:', file.status, 'Result:', !!file.result);
+                    return (
+                      <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg">
+                        <p className="text-sm text-yellow-800 dark:text-yellow-200 font-semibold">
+                          ⚠️ {file.status === 'completed' ? 'Erro: Resultados não carregados' : `Status: ${file.status}`}
+                        </p>
+                        <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                          Arquivo: {file.file.name} | Resultado: {file.result ? 'Existe' : 'Não existe'}
+                        </p>
+                      </div>
+                    );
+                  }
+                })()}
               </div>
             ))}
           </div>

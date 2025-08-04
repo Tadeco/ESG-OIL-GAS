@@ -113,17 +113,33 @@ class MockApiService {
     };
   }
 
-  // Simula análise ESG do contrato
-  async analyzeContract(contractId: string, fileName?: string): Promise<ESGAnalysisResult> {
-    console.log('MockAPI: Iniciando análise ESG para contractId:', contractId, 'fileName:', fileName);
-    await this.delay(3000);
+  // Simula análise ESG do contrato - VERSÃO ROBUSTA
+  async analyzeContract(contractId: string, fileName?: string, fileSize?: number): Promise<ESGAnalysisResult> {
+    console.log('='.repeat(80));
+    console.log('🚀 ROBUST MockAPI: INICIANDO ANÁLISE COMPLETA');
+    console.log('='.repeat(80));
+    console.log('📋 Contract ID:', contractId);
+    console.log('📄 File Name:', fileName || 'UNKNOWN');
+    console.log('📏 File Size:', fileSize || 0, 'bytes');
+    console.log('-'.repeat(80));
 
-    // Usar a função simplificada para gerar resultados
-    const { generateSimpleResult } = await import('./mock-api-simple');
-    const mockResult: ESGAnalysisResult = generateSimpleResult(contractId, fileName || 'default-contract.pdf');
+    // Usar implementação robusta
+    const { RobustMockAPI } = await import('./robust-mock-api');
+    const result = await RobustMockAPI.analyzeContractRobust(
+      contractId, 
+      fileName || 'default-contract.pdf',
+      fileSize || 1000000
+    );
 
-    console.log('MockAPI: Análise ESG concluída, retornando resultado:', mockResult);
-    return mockResult;
+    console.log('='.repeat(80));
+    console.log('✅ ROBUST MockAPI: ANÁLISE CONCLUÍDA COM SUCESSO');
+    console.log('📊 SCORE FINAL:', result.overallScore);
+    console.log('🌱 Environmental:', result.categories.environmental.score);
+    console.log('👥 Social:', result.categories.social.score);
+    console.log('🏛️ Governance:', result.categories.governance.score);
+    console.log('='.repeat(80));
+
+    return result;
   }
 
               sentiment: 'POSITIVE'
