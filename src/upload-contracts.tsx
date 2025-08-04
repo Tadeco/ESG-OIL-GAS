@@ -132,13 +132,14 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
           } : f
         ));
 
-        // Start analysis - VERSÃO ROBUSTA
-        console.log('🎯 INICIANDO ANÁLISE ESG ROBUSTA...');
+        // Start analysis - LEITURA REAL DO PDF
+        console.log('📖 INICIANDO LEITURA REAL DO PDF...');
         console.log('📄 Arquivo:', file.name);
         console.log('📏 Tamanho:', file.size, 'bytes');
         console.log('🆔 Contract ID:', uploadResult.contractId);
+        console.log('🔍 PASSANDO ARQUIVO REAL PARA ANÁLISE...');
         
-        const analysisResult = await mockApi.analyzeContract(uploadResult.contractId, file.name, file.size);
+        const analysisResult = await mockApi.analyzeContract(uploadResult.contractId, file.name, file.size, file);
         
         console.log('✅ ANÁLISE CONCLUÍDA - Resultado:', analysisResult);
         console.log('📊 Score recebido:', analysisResult?.overallScore);

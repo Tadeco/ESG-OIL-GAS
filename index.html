@@ -127,6 +127,16 @@
     
     <div id="root"></div>
     
+    <!-- PDF.js CDN for real PDF text extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+      // Configure PDF.js worker
+      if (typeof pdfjsLib !== 'undefined') {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        console.log('✅ PDF.js carregado e configurado para leitura real de PDFs');
+      }
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
     
     <script>
