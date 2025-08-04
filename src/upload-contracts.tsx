@@ -132,17 +132,33 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
           } : f
         ));
 
-        // Start analysis - LEITURA REAL DO PDF
-        console.log('📖 INICIANDO LEITURA REAL DO PDF...');
+        // Start analysis - LEITURA REAL DO PDF COM DEBUG COMPLETO
+        console.log('🚀'.repeat(60));
+        console.log('🔍 INICIANDO ANÁLISE COMPLETA DO PDF');
+        console.log('🚀'.repeat(60));
         console.log('📄 Arquivo:', file.name);
         console.log('📏 Tamanho:', file.size, 'bytes');
+        console.log('🕒 Hora:', new Date().toISOString());
         console.log('🆔 Contract ID:', uploadResult.contractId);
-        console.log('🔍 PASSANDO ARQUIVO REAL PARA ANÁLISE...');
+        console.log('🔍 ENVIANDO ARQUIVO REAL PARA ANÁLISE...');
+        
+        // DEBUG: Verificar se o arquivo é válido
+        console.log('🔍 VALIDAÇÃO DO ARQUIVO:');
+        console.log('  - Nome:', file.name);
+        console.log('  - Tipo:', file.type);
+        console.log('  - Tamanho:', file.size);
+        console.log('  - Última modificação:', new Date(file.lastModified));
         
         const analysisResult = await mockApi.analyzeContract(uploadResult.contractId, file.name, file.size, file);
         
-        console.log('✅ ANÁLISE CONCLUÍDA - Resultado:', analysisResult);
-        console.log('📊 Score recebido:', analysisResult?.overallScore);
+        console.log('🎯'.repeat(60));
+        console.log('✅ ANÁLISE CONCLUÍDA - RESULTADO RECEBIDO');
+        console.log('🎯'.repeat(60));
+        console.log('📊 Score Overall:', analysisResult?.overallScore);
+        console.log('🌱 Score Environmental:', analysisResult?.categories?.environmental?.score);
+        console.log('👥 Score Social:', analysisResult?.categories?.social?.score);
+        console.log('🏛️ Score Governance:', analysisResult?.categories?.governance?.score);
+        console.log('🔍 Confiança:', analysisResult?.confidence);
         
         // Garantir que o estado seja atualizado FORÇADAMENTE
         const updatedFile = {

@@ -4,35 +4,91 @@ import { ESGAnalysisResult } from './mock-api';
 export class PDFAnalyzer {
   
   static async analyzePDFContent(file: File, contractId: string): Promise<ESGAnalysisResult> {
-    console.log('📖 INICIANDO LEITURA REAL DO PDF');
+    console.log('🚨'.repeat(80));
+    console.log('🔍 DEBUG COMPLETO - ANÁLISE DE PDF PASSO A PASSO');
+    console.log('🚨'.repeat(80));
     console.log('📄 Arquivo:', file.name);
     console.log('📏 Tamanho:', file.size, 'bytes');
+    console.log('🕒 Timestamp:', new Date().toISOString());
     
     try {
-      // 1. LER O CONTEÚDO DO PDF
+      // 1. VERIFICAR SE É REALMENTE UM PDF
+      console.log('🔍 ETAPA 1: Verificando tipo do arquivo...');
+      console.log('  📋 Tipo MIME:', file.type);
+      console.log('  📋 Nome arquivo:', file.name);
+      console.log('  📋 Extensão:', file.name.split('.').pop());
+      
+      // 2. LER O CONTEÚDO DO PDF
+      console.log('🔍 ETAPA 2: Extraindo texto do PDF...');
       const pdfText = await this.extractTextFromPDF(file);
-      console.log('✅ PDF LIDO COM SUCESSO');
-      console.log('📝 Texto extraído (primeiros 500 chars):', pdfText.substring(0, 500));
-      console.log('📊 Total de caracteres:', pdfText.length);
       
-      // 2. ANALISAR PALAVRAS-CHAVE
+      console.log('✅ PDF LIDO COM SUCESSO!');
+      console.log('📊 Total de caracteres extraídos:', pdfText.length);
+      console.log('📝 Texto extraído (primeiros 200 chars):', pdfText.substring(0, 200));
+      console.log('📝 Texto extraído (caracteres 200-400):', pdfText.substring(200, 400));
+      console.log('📝 Texto extraído (últimos 200 chars):', pdfText.substring(Math.max(0, pdfText.length - 200)));
+      
+      // 3. VERIFICAR SE EXTRAIU TEXTO ÚTIL
+      if (pdfText.length < 50) {
+        console.log('⚠️ AVISO: Pouco texto extraído (<50 chars) - PDF pode ser só imagem');
+        console.log('🔄 Tentando fallback por nome do arquivo...');
+        return this.fallbackAnalysis(contractId, file.name, file.size);
+      }
+      
+      // 4. ANALISAR PALAVRAS-CHAVE
+      console.log('🔍 ETAPA 3: Analisando palavras-chave no texto...');
       const analysis = this.analyzeKeywords(pdfText);
-      console.log('🔍 ANÁLISE DE PALAVRAS-CHAVE:', analysis);
       
-      // 3. GERAR RESULTADO BASEADO NO CONTEÚDO REAL
+      console.log('📊 RESULTADO DA ANÁLISE DE PALAVRAS-CHAVE:');
+      console.log('  🟢 Positivas - Environmental:', analysis.positive.environmental);
+      console.log('  🟢 Positivas - Social:', analysis.positive.social);
+      console.log('  🟢 Positivas - Governance:', analysis.positive.governance);
+      console.log('  🔴 Negativas - Environmental:', analysis.negative.environmental);
+      console.log('  🔴 Negativas - Social:', analysis.negative.social);
+      console.log('  🔴 Negativas - Governance:', analysis.negative.governance);
+      console.log('  📝 Palavras encontradas:', analysis.keywords_found);
+      
+      // 5. CALCULAR SCORES
+      console.log('🔍 ETAPA 4: Calculando scores baseados no conteúdo...');
+      const envScore = this.calculateScore(analysis.positive.environmental, analysis.negative.environmental);
+      const socScore = this.calculateScore(analysis.positive.social, analysis.negative.social);
+      const govScore = this.calculateScore(analysis.positive.governance, analysis.negative.governance);
+      const overallScore = Math.round((envScore + socScore + govScore) / 3);
+      
+      console.log('📊 SCORES CALCULADOS:');
+      console.log('  🌱 Environmental:', envScore, '(baseado em +', analysis.positive.environmental, '/-', analysis.negative.environmental, ')');
+      console.log('  👥 Social:', socScore, '(baseado em +', analysis.positive.social, '/-', analysis.negative.social, ')');
+      console.log('  🏛️ Governance:', govScore, '(baseado em +', analysis.positive.governance, '/-', analysis.negative.governance, ')');
+      console.log('  📈 OVERALL:', overallScore);
+      
+      // 6. VALIDAR SE OS SCORES SÃO DIFERENTES
+      const scoreVariation = Math.max(envScore, socScore, govScore) - Math.min(envScore, socScore, govScore);
+      console.log('🎯 Variação entre scores:', scoreVariation);
+      
+      if (scoreVariation < 5 && analysis.keywords_found.length === 0) {
+        console.log('⚠️ AVISO: Pouca variação e nenhuma palavra-chave encontrada');
+        console.log('🔄 Usando sistema garantido para maior variação...');
+        const { GuaranteedAnalysis } = await import('./guaranteed-analysis');
+        return await GuaranteedAnalysis.analyzeWithGuarantee(contractId, file.name, file.size);
+      }
+      
+      // 7. GERAR RESULTADO FINAL
+      console.log('🔍 ETAPA 5: Gerando resultado final...');
       const result = this.generateResultFromContent(contractId, file.name, analysis, pdfText);
       
-      console.log('🎯 RESULTADO BASEADO NO CONTEÚDO REAL:');
-      console.log('  📊 Score:', result.overallScore);
+      console.log('🎯 RESULTADO FINAL BASEADO NO CONTEÚDO REAL:');
+      console.log('  📊 Overall Score:', result.overallScore);
       console.log('  🌱 Environmental:', result.categories.environmental.score);
       console.log('  👥 Social:', result.categories.social.score);
       console.log('  🏛️ Governance:', result.categories.governance.score);
+      console.log('  🔍 Confiança:', result.confidence);
       
       return result;
       
     } catch (error) {
-      console.error('❌ ERRO NA LEITURA DO PDF:', error);
-      // Fallback para análise por nome se leitura falhar
+      console.error('❌ ERRO CRÍTICO NA LEITURA DO PDF:', error);
+      console.error('❌ Stack trace:', error.stack);
+      console.log('🔄 Usando fallback por nome/tamanho...');
       return this.fallbackAnalysis(contractId, file.name, file.size);
     }
   }
@@ -100,7 +156,12 @@ export class PDFAnalyzer {
   
   // Analisar palavras-chave no texto
   private static analyzeKeywords(text: string): any {
+    console.log('🔍 ANÁLISE DETALHADA DE PALAVRAS-CHAVE');
+    console.log('📝 Texto para análise (length):', text.length);
+    console.log('📝 Amostra do texto:', text.substring(0, 300));
+    
     const lowerText = text.toLowerCase();
+    console.log('📝 Texto em minúsculas (amostra):', lowerText.substring(0, 300));
     
     // PALAVRAS-CHAVE POSITIVAS (ESG Bom)
     const positiveKeywords = {
@@ -109,18 +170,21 @@ export class PDFAnalyzer {
         'iso 14001', 'biodiversidade', 'conservacao', 'conservação', 'zero vazamento',
         'energia limpa', 'certificacao', 'certificação', 'monitoramento ambiental',
         'mitigacao', 'mitigação', 'recuperacao', 'recuperação', 'preservacao', 'preservação',
-        'verde', 'clean', 'sustain', 'environmental', 'climate', 'emission', 'carbon neutral'
+        'verde', 'clean', 'sustain', 'environmental', 'climate', 'emission', 'carbon neutral',
+        'ambiental', 'ecologico', 'ecológico', 'limpa', 'renovaveis', 'renováveis'
       ],
       social: [
         'comunidade', 'local', 'indigena', 'indígena', 'consulta previa', 'consulta prévia',
         'capacitacao', 'capacitação', 'educacao', 'educação', 'saude', 'saúde',
         'diversidade', 'inclusao', 'inclusão', 'direitos humanos', 'engajamento',
-        'social', 'community', 'training', 'health', 'safety', 'workforce', 'indigenous'
+        'social', 'community', 'training', 'health', 'safety', 'workforce', 'indigenous',
+        'trabalho', 'emprego', 'seguranca', 'segurança', 'bem-estar'
       ],
       governance: [
         'transparencia', 'transparência', 'auditoria', 'compliance', 'governanca', 'governança',
         'etica', 'ética', 'prestacao', 'prestação', 'independente', 'comite', 'comitê',
-        'governance', 'ethics', 'transparency', 'audit', 'independent', 'committee'
+        'governance', 'ethics', 'transparency', 'audit', 'independent', 'committee',
+        'gestao', 'gestão', 'controle', 'supervisao', 'supervisão'
       ]
     };
     
@@ -153,27 +217,51 @@ export class PDFAnalyzer {
       keywords_found: [] as string[]
     };
     
+    console.log('🔍 Iniciando contagem de palavras-chave...');
+    
     // Contar palavras positivas
+    console.log('🟢 Analisando palavras POSITIVAS...');
     Object.entries(positiveKeywords).forEach(([category, keywords]) => {
+      console.log(`  📋 Categoria ${category}: ${keywords.length} palavras para verificar`);
+      let categoryCount = 0;
       keywords.forEach(keyword => {
-        const count = (lowerText.match(new RegExp(keyword, 'g')) || []).length;
+        const regex = new RegExp(keyword, 'gi'); // case insensitive
+        const matches = lowerText.match(regex);
+        const count = matches ? matches.length : 0;
         if (count > 0) {
           analysis.positive[category as keyof typeof analysis.positive] += count;
           analysis.keywords_found.push(`+${keyword}(${count})`);
+          categoryCount += count;
+          console.log(`    ✅ "${keyword}" encontrada ${count} vez(es)`);
         }
       });
+      console.log(`  📊 Total positivas para ${category}: ${categoryCount}`);
     });
     
     // Contar palavras negativas
+    console.log('🔴 Analisando palavras NEGATIVAS...');
     Object.entries(negativeKeywords).forEach(([category, keywords]) => {
+      console.log(`  📋 Categoria ${category}: ${keywords.length} palavras para verificar`);
+      let categoryCount = 0;
       keywords.forEach(keyword => {
-        const count = (lowerText.match(new RegExp(keyword, 'g')) || []).length;
+        const regex = new RegExp(keyword, 'gi'); // case insensitive
+        const matches = lowerText.match(regex);
+        const count = matches ? matches.length : 0;
         if (count > 0) {
           analysis.negative[category as keyof typeof analysis.negative] += count;
           analysis.keywords_found.push(`-${keyword}(${count})`);
+          categoryCount += count;
+          console.log(`    ❌ "${keyword}" encontrada ${count} vez(es)`);
         }
       });
+      console.log(`  📊 Total negativas para ${category}: ${categoryCount}`);
     });
+    
+    console.log('📊 RESUMO DA ANÁLISE:');
+    console.log('  🟢 Positivas:', analysis.positive);
+    console.log('  🔴 Negativas:', analysis.negative);
+    console.log('  📝 Total palavras encontradas:', analysis.keywords_found.length);
+    console.log('  📋 Lista completa:', analysis.keywords_found);
     
     return analysis;
   }

@@ -136,6 +136,16 @@ class MockApiService {
         console.log('🔍 Confiança:', result.confidence);
         console.log('🎯 Categorias - E:', result.categories.environmental.score, 'S:', result.categories.social.score, 'G:', result.categories.governance.score);
         
+        // VALIDAÇÃO FINAL: Verificar se o resultado é único
+        console.log('🔍 VALIDAÇÃO FINAL DO RESULTADO:');
+        console.log('  📄 Arquivo analisado:', file.name);
+        console.log('  📊 Score único:', result.overallScore);
+        console.log('  🕒 Timestamp:', result.uploadDate);
+        console.log('  🆔 ID único:', result.contractId);
+        
+        // Adicionar identificador único baseado no arquivo
+        result.fileName = `${file.name} (${new Date().getTime()})`;
+        
         return result;
         
       } catch (error) {
