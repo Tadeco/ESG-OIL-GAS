@@ -225,6 +225,7 @@ const App: React.FC = () => {
           <UploadContracts
             theme={theme}
             onNavigate={handleNavigate}
+            user={user || undefined}
           />
         );
 

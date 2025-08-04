@@ -87,6 +87,32 @@ export interface ContractUpload {
 class MockApiService {
   private delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+  // Simula login com email e senha
+  async login(email: string, password: string): Promise<{ user: any; token: string; mfaRequired?: boolean }> {
+    console.log('MockAPI: Tentativa de login:', email);
+    await this.delay(1000);
+    
+    // Aceitar qualquer email válido para demonstração
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error('Email inválido');
+    }
+    
+    // Usar o email real fornecido pelo usuário
+    return {
+      user: {
+        id: 'user-' + Date.now(),
+        name: 'Tadeu Santana',
+        email: email, // EMAIL REAL DO USUÁRIO
+        role: 'Senior ESG Analyst',
+        avatar: 'https://via.placeholder.com/40',
+        department: 'Sustainability & Compliance',
+        loginProvider: 'email'
+      },
+      token: 'mock-jwt-token-' + Date.now()
+    };
+  }
+
   // Simula login com Google OAuth
   async loginWithGoogle(): Promise<{ user: any; token: string }> {
     await this.delay(1500);

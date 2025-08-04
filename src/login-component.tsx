@@ -322,49 +322,28 @@ const Login: React.FC<LoginProps> = ({
                 </button>
 
                 {/* Divider */}
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className={`w-full border-t ${
-                      theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-                    }`} />
+                {/* Aviso sobre envio por email */}
+                <div className={`p-4 rounded-lg border-l-4 ${
+                  theme === 'dark' 
+                    ? 'border-blue-500 bg-blue-900/20' 
+                    : 'border-blue-500 bg-blue-50'
+                }`}>
+                  <div className="flex items-start gap-3">
+                    <Mail className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className={`font-semibold text-sm mb-1 ${
+                        theme === 'dark' ? 'text-blue-400' : 'text-blue-800'
+                      }`}>
+                        📧 Relatórios por Email
+                      </h4>
+                      <p className={`text-sm ${
+                        theme === 'dark' ? 'text-blue-300' : 'text-blue-700'
+                      }`}>
+                        Após a análise ESG, o relatório detalhado será enviado automaticamente 
+                        para o email informado no login.
+                      </p>
+                    </div>
                   </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className={`px-4 ${
-                      theme === 'dark' ? 'bg-gray-800 text-gray-400' : 'bg-white text-gray-500'
-                    }`}>
-                      Or continue with
-                    </span>
-                  </div>
-                </div>
-
-                {/* Social Login */}
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    type="button"
-                    onClick={() => handleSocialLogin('google')}
-                    disabled={isLoading}
-                    className={`py-2.5 px-4 rounded-lg border font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
-                      theme === 'dark'
-                        ? 'border-gray-700 text-gray-300 hover:bg-gray-700'
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    <Globe className="w-5 h-5" />
-                    Google
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSocialLogin('microsoft')}
-                    disabled={isLoading}
-                    className={`py-2.5 px-4 rounded-lg border font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
-                      theme === 'dark'
-                        ? 'border-gray-700 text-gray-300 hover:bg-gray-700'
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    <Building2 className="w-5 h-5" />
-                    Microsoft
-                  </button>
                 </div>
               </form>
             ) : (

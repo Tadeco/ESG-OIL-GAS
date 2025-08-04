@@ -24,6 +24,11 @@ import DetailedReport from './detailed-report';
 interface UploadContractsProps {
   theme?: 'light' | 'dark';
   onNavigate?: (path: string) => void;
+  user?: {
+    name: string;
+    email: string;
+    role: string;
+  };
 }
 
 interface UploadedFile {
@@ -38,7 +43,8 @@ interface UploadedFile {
 
 const UploadContracts: React.FC<UploadContractsProps> = ({
   theme = 'light',
-  onNavigate = () => {}
+  onNavigate = () => {},
+  user
 }) => {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [dragActive, setDragActive] = useState(false);
@@ -210,6 +216,13 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
           
           return newFiles;
         });
+
+        // Enviar relatório por email após análise concluída
+        if (user?.email && updatedFile.result) {
+          setTimeout(() => {
+            sendReportByEmail(updatedFile, user.email);
+          }, 2000); // Delay de 2 segundos para dar tempo da UI atualizar
+        }
         
         // Verificação adicional após 1 segundo
         setTimeout(() => {
@@ -236,6 +249,32 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
         ));
       }
     }
+  };
+
+  // Simular envio por email
+  const sendReportByEmail = async (file: UploadedFile, userEmail: string) => {
+    console.log('📧 SIMULANDO ENVIO POR EMAIL...');
+    console.log('📄 Arquivo:', file.file.name);
+    console.log('📧 Destinatário:', userEmail);
+    console.log('📊 Score:', file.result?.overallScore);
+    
+    // Simular delay de envio
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Mostrar confirmação visual
+    const message = `
+📧 RELATÓRIO ENVIADO POR EMAIL!
+
+✅ Para: ${userEmail}
+📄 Arquivo: ${file.file.name}
+📊 Score ESG: ${file.result?.overallScore}/100
+⏰ Enviado em: ${new Date().toLocaleString('pt-BR')}
+
+O relatório detalhado foi enviado para sua caixa de entrada.
+    `;
+    
+    alert(message);
+    console.log('✅ EMAIL SIMULADO ENVIADO COM SUCESSO');
   };
 
   // Remove file
