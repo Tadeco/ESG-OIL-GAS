@@ -28,11 +28,13 @@ export interface CategoryResult {
 export interface Risk {
   id: string;
   level: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  category: 'ENVIRONMENTAL' | 'SOCIAL' | 'GOVERNANCE';
-  title: string;
+  category: 'ENVIRONMENTAL' | 'SOCIAL' | 'GOVERNANCE' | 'OVERALL';
+  title?: string;
   description: string;
   impact: string;
-  recommendation: string;
+  recommendation?: string;
+  probability?: number;
+  mitigation?: string;
 }
 
 export interface Finding {
@@ -64,10 +66,13 @@ export interface ComplianceResult {
 }
 
 export interface ComplianceIssue {
-  framework: string;
-  severity: 'HIGH' | 'MEDIUM' | 'LOW';
+  id?: string;
+  framework?: string;
+  severity: 'HIGH' | 'MEDIUM' | 'LOW' | 'CRITICAL';
+  category?: string;
   description: string;
-  solution: string;
+  solution?: string;
+  recommendation?: string;
 }
 
 export interface ContractUpload {
@@ -152,25 +157,15 @@ class MockApiService {
         console.log('⚠️ ERRO NA LEITURA PDF.js:', error);
         console.log('🔄 TENTATIVA 2: Sistema garantido de análise');
         
-        // SEGUNDA TENTATIVA: Sistema garantido
-        const { GuaranteedAnalysis } = await import('./guaranteed-analysis');
-        const fallbackResult = await GuaranteedAnalysis.analyzeWithGuarantee(
-          contractId, 
-          file.name,
-          file.size
-        );
-        
-        console.log('✅ FALLBACK EXECUTADO COM SUCESSO');
-        console.log('📊 Score gerado:', fallbackResult.overallScore);
-        
-        return fallbackResult;
+        // SEGUNDA TENTATIVA: Fallback simples baseado no nome
+        console.log('🔄 FALLBACK: Análise baseada no nome do arquivo');
+        return this.generateFallbackAnalysis(contractId, file.name, file.size);
       }
     } else {
       console.log('❌ ARQUIVO NÃO FORNECIDO - USANDO SISTEMA DE BACKUP');
       
       // TERCEIRA OPÇÃO: Backup completo
-      const { GuaranteedAnalysis } = await import('./guaranteed-analysis');
-      return await GuaranteedAnalysis.analyzeWithGuarantee(
+      return this.generateFallbackAnalysis(
         contractId, 
         fileName || 'contract-backup.pdf',
         fileSize || 1000000
@@ -178,239 +173,89 @@ class MockApiService {
     }
   }
 
-              sentiment: 'POSITIVE'
-            },
-            {
-              text: 'Certificação ISO 14001 obrigatória para todas as operações',
-              category: 'Environmental Management',
-              confidence: 0.91,
-              sentiment: 'POSITIVE'
-            },
-            {
-              text: 'Ausência de plano específico para proteção da biodiversidade marinha',
-              category: 'Biodiversity',
-              confidence: 0.87,
-              sentiment: 'NEGATIVE'
-            }
-          ],
-          risks: [
-            {
-              id: 'env-001',
-              level: 'MEDIUM',
-              category: 'ENVIRONMENTAL',
-              title: 'Risco de Vazamento Offshore',
-              description: 'Operações em águas profundas sem plano de contingência detalhado',
-              impact: 'Potencial dano ambiental significativo e multas regulatórias',
-              recommendation: 'Implementar sistema de monitoramento 24/7 e plano de resposta a emergências'
-            }
-          ],
-          strengths: [
-            'Metas de emissões alinhadas com Acordo de Paris',
-            'Certificação ambiental internacional obrigatória',
-            'Investimento em tecnologias de captura de carbono'
-          ],
-          weaknesses: [
-            'Falta plano específico para biodiversidade',
-            'Ausência de métricas para economia circular'
-          ]
+  // Fallback analysis baseado em nome e tamanho
+  private generateFallbackAnalysis(contractId: string, fileName: string, fileSize: number): ESGAnalysisResult {
+    console.log('🔄 GERANDO ANÁLISE FALLBACK');
+    
+    const name = fileName.toLowerCase();
+    let baseScore = 50;
+    
+    // Análise por nome
+    if (name.includes('sustentavel') || name.includes('exploracao')) baseScore = 85;
+    else if (name.includes('refinaria') || name.includes('distribuicao')) baseScore = 25;
+    else if (name.includes('transporte')) baseScore = 55;
+    
+    // Variação por tamanho
+    const sizeVariation = Math.floor((fileSize / 100000) % 20) - 10; // -10 a +9
+    const finalScore = Math.max(10, Math.min(95, baseScore + sizeVariation));
+    
+    const envScore = finalScore + Math.floor(Math.random() * 10) - 5;
+    const socScore = finalScore + Math.floor(Math.random() * 10) - 5;
+    const govScore = finalScore + Math.floor(Math.random() * 10) - 5;
+    
+    return {
+      contractId,
+      fileName,
+      uploadDate: new Date().toISOString(),
+      overallScore: finalScore,
+      confidence: 0.75,
+      categories: {
+        environmental: {
+          score: Math.max(5, Math.min(100, envScore)),
+          findings: [{ text: `Análise fallback para ${fileName}`, category: 'Fallback', confidence: 0.75, sentiment: 'NEUTRAL' }],
+          risks: [],
+          strengths: ['Estrutura básica presente'],
+          weaknesses: ['Análise limitada sem leitura completa do PDF']
         },
         social: {
-          score: 72,
-          findings: [
-            {
-              text: 'Garantia de direitos trabalhistas conforme OIT',
-              category: 'Labor Rights',
-              confidence: 0.89,
-              sentiment: 'POSITIVE'
-            },
-            {
-              text: 'Programa de desenvolvimento para comunidades locais',
-              category: 'Community Relations',
-              confidence: 0.84,
-              sentiment: 'POSITIVE'
-            },
-            {
-              text: 'Falta de consulta prévia com povos indígenas',
-              category: 'Indigenous Rights',
-              confidence: 0.92,
-              sentiment: 'NEGATIVE'
-            }
-          ],
-          risks: [
-            {
-              id: 'soc-001',
-              level: 'HIGH',
-              category: 'SOCIAL',
-              title: 'Conflito com Comunidades Indígenas',
-              description: 'Operações em território tradicional sem consulta prévia adequada',
-              impact: 'Risco de paralisação das operações e danos reputacionais',
-              recommendation: 'Implementar protocolo de consulta livre, prévia e informada'
-            }
-          ],
-          strengths: [
-            'Conformidade com padrões internacionais de trabalho',
-            'Programas de capacitação profissional',
-            'Investimento em infraestrutura local'
-          ],
-          weaknesses: [
-            'Ausência de consulta com povos indígenas',
-            'Falta de métricas de diversidade e inclusão'
-          ]
+          score: Math.max(5, Math.min(100, socScore)),
+          findings: [{ text: `Avaliação social baseada em metadados`, category: 'Fallback', confidence: 0.75, sentiment: 'NEUTRAL' }],
+          risks: [],
+          strengths: ['Informações básicas processadas'],
+          weaknesses: ['Dados sociais limitados']
         },
         governance: {
-          score: 91,
-          findings: [
-            {
-              text: 'Comitê de auditoria independente estabelecido',
-              category: 'Corporate Governance',
-              confidence: 0.96,
-              sentiment: 'POSITIVE'
-            },
-            {
-              text: 'Canal de denúncias anônimas implementado',
-              category: 'Ethics & Compliance',
-              confidence: 0.93,
-              sentiment: 'POSITIVE'
-            },
-            {
-              text: 'Transparência total em relatórios financeiros e ESG',
-              category: 'Transparency',
-              confidence: 0.88,
-              sentiment: 'POSITIVE'
-            }
-          ],
-          risks: [
-            {
-              id: 'gov-001',
-              level: 'LOW',
-              category: 'GOVERNANCE',
-              title: 'Concentração de Poder Decisório',
-              description: 'Falta de diversidade no conselho de administração',
-              impact: 'Risco de decisões enviesadas e falta de perspectivas diversas',
-              recommendation: 'Aumentar diversidade de gênero e origem no conselho'
-            }
-          ],
-          strengths: [
-            'Estrutura de governança robusta',
-            'Auditoria independente estabelecida',
-            'Transparência em relatórios',
-            'Canal de ética funcional'
-          ],
-          weaknesses: [
-            'Baixa diversidade no conselho',
-            'Falta de metas ESG vinculadas à remuneração'
-          ]
+          score: Math.max(5, Math.min(100, govScore)),
+          findings: [{ text: `Governança avaliada por características do arquivo`, category: 'Fallback', confidence: 0.75, sentiment: 'NEUTRAL' }],
+          risks: [],
+          strengths: ['Estrutura formal identificada'],
+          weaknesses: ['Análise superficial de governança']
         }
       },
-      risks: [
-        {
-          id: 'risk-critical-001',
-          level: 'CRITICAL',
-          category: 'ENVIRONMENTAL',
-          title: 'Risco Climático Físico',
-          description: 'Instalações em região com alta probabilidade de eventos climáticos extremos',
-          impact: 'Interrupção das operações e perdas financeiras significativas',
-          recommendation: 'Implementar análise de cenários climáticos e plano de adaptação'
-        },
-        {
-          id: 'risk-high-001',
-          level: 'HIGH',
-          category: 'SOCIAL',
-          title: 'Licença Social para Operar',
-          description: 'Resistência comunitária devido à falta de engajamento adequado',
-          impact: 'Atrasos no projeto e custos adicionais de mediação',
-          recommendation: 'Estabelecer programa contínuo de engajamento comunitário'
-        }
-      ],
-      recommendations: [
-        {
-          id: 'rec-001',
-          category: 'ENVIRONMENTAL',
-          priority: 'HIGH',
-          title: 'Implementar Plano de Biodiversidade',
-          description: 'Desenvolver estratégia específica para proteção da biodiversidade marinha',
-          action: 'Contratar consultoria especializada e realizar estudo de impacto',
-          timeline: '6 meses'
-        },
-        {
-          id: 'rec-002',
-          category: 'SOCIAL',
-          priority: 'CRITICAL',
-          title: 'Protocolo de Consulta Indígena',
-          description: 'Estabelecer processo formal de consulta livre, prévia e informada',
-          action: 'Parceria com FUNAI e organizações indígenas',
-          timeline: '3 meses'
-        },
-        {
-          id: 'rec-003',
-          category: 'GOVERNANCE',
-          priority: 'MEDIUM',
-          title: 'Diversificar Conselho de Administração',
-          description: 'Aumentar representatividade de gênero e origem étnica',
-          action: 'Revisar política de nomeação e buscar candidatos diversos',
-          timeline: '12 meses'
-        }
-      ],
+      risks: [{
+        id: `fallback-risk-${Date.now()}`,
+        level: 'MEDIUM' as const,
+        category: 'OVERALL' as const,
+        description: 'Análise limitada - PDF não foi completamente processado',
+        impact: 'MEDIUM',
+        mitigation: 'Tentar novamente com PDF otimizado'
+      }],
+      recommendations: [{
+        id: `fallback-rec-${Date.now()}`,
+        category: 'ENVIRONMENTAL' as const,
+        priority: 'MEDIUM' as const,
+        title: 'Melhorar qualidade do PDF',
+        description: 'Otimizar arquivo para análise completa',
+        action: 'Usar PDF com texto pesquisável',
+        timeline: 'Próxima análise'
+      }],
       compliance: {
-        status: 'PARTIALLY_COMPLIANT',
+        status: 'PARTIALLY_COMPLIANT' as const,
         frameworks: {
-          gri: {
-            score: 82,
-            compliant: true,
-            details: [
-              'GRI 305: Emissões - Compliant',
-              'GRI 403: Saúde e Segurança - Compliant',
-              'GRI 413: Comunidades Locais - Parcialmente Compliant'
-            ]
-          },
-          sasb: {
-            score: 75,
-            compliant: true,
-            details: [
-              'SASB EM-EP-110a.1: Emissões de GEE - Compliant',
-              'SASB EM-EP-210a.1: Gestão de Água - Compliant',
-              'SASB EM-EP-510a.1: Direitos Indígenas - Não Compliant'
-            ]
-          },
-          tcfd: {
-            score: 88,
-            compliant: true,
-            details: [
-              'Governança: Compliant',
-              'Estratégia: Compliant',
-              'Gestão de Riscos: Compliant',
-              'Métricas e Metas: Parcialmente Compliant'
-            ]
-          },
-          ipieca: {
-            score: 79,
-            compliant: true,
-            details: [
-              'Princípio 1: Ética e Transparência - Compliant',
-              'Princípio 2: Gestão Ambiental - Compliant',
-              'Princípio 3: Saúde e Segurança - Compliant'
-            ]
-          }
+          gri: { score: 50, compliant: false, details: [`Análise limitada para ${fileName}`] },
+          sasb: { score: 45, compliant: false, details: ['Dados insuficientes'] },
+          tcfd: { score: 40, compliant: false, details: ['Análise superficial'] },
+          ipieca: { score: 48, compliant: false, details: ['Avaliação parcial'] }
         },
-        issues: [
-          {
-            framework: 'SASB',
-            severity: 'HIGH',
-            description: 'Ausência de protocolo para direitos indígenas conforme EM-EP-510a.1',
-            solution: 'Implementar processo de consulta livre, prévia e informada'
-          },
-          {
-            framework: 'GRI',
-            severity: 'MEDIUM',
-            description: 'Relatório de engajamento comunitário incompleto (GRI 413)',
-            solution: 'Documentar todas as atividades de engajamento e seus resultados'
-          }
-        ]
+        issues: [{
+          id: `fallback-issue-${Date.now()}`,
+          severity: 'MEDIUM' as const,
+          category: 'TECHNICAL',
+          description: 'PDF não foi completamente processado',
+          recommendation: 'Tentar com arquivo otimizado'
+        }]
       }
     };
-
-    console.log('MockAPI: Análise ESG concluída, retornando resultado:', mockResult);
-    return mockResult;
   }
 
   // Simula busca de contratos

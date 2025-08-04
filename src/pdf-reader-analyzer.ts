@@ -67,9 +67,8 @@ export class PDFAnalyzer {
       
       if (scoreVariation < 5 && analysis.keywords_found.length === 0) {
         console.log('⚠️ AVISO: Pouca variação e nenhuma palavra-chave encontrada');
-        console.log('🔄 Usando sistema garantido para maior variação...');
-        const { GuaranteedAnalysis } = await import('./guaranteed-analysis');
-        return await GuaranteedAnalysis.analyzeWithGuarantee(contractId, file.name, file.size);
+        console.log('🔄 Usando fallback para maior variação...');
+        return this.fallbackAnalysis(contractId, file.name, file.size);
       }
       
       // 7. GERAR RESULTADO FINAL
@@ -87,7 +86,9 @@ export class PDFAnalyzer {
       
     } catch (error) {
       console.error('❌ ERRO CRÍTICO NA LEITURA DO PDF:', error);
-      console.error('❌ Stack trace:', error.stack);
+      if (error instanceof Error) {
+        console.error('❌ Stack trace:', error.stack);
+      }
       console.log('🔄 Usando fallback por nome/tamanho...');
       return this.fallbackAnalysis(contractId, file.name, file.size);
     }
@@ -392,7 +393,7 @@ export class PDFAnalyzer {
     return [{
       id: `overall-risk-${Date.now()}`,
       level: level as any,
-      category: 'OVERALL',
+      category: 'OVERALL' as const,
       description: `Risco geral baseado na análise completa do documento (score: ${score})`,
       probability: score >= 70 ? 0.15 : score >= 50 ? 0.45 : 0.75,
       impact: level,
@@ -472,7 +473,7 @@ export class PDFAnalyzer {
       issues: score < 50 ? [{
         id: `issue-${Date.now()}`,
         severity: score < 30 ? 'CRITICAL' as const : 'HIGH' as const,
-        category: 'OVERALL',
+        category: 'TECHNICAL',
         description: `Múltiplas não conformidades identificadas na análise do conteúdo`,
         recommendation: 'Revisão completa das práticas ESG'
       }] : []
@@ -531,7 +532,7 @@ export class PDFAnalyzer {
       risks: [],
       recommendations: [{
         id: `rec-fallback-${Date.now()}`,
-        category: 'OVERALL' as const,
+        category: 'ENVIRONMENTAL' as const,
         priority: 'MEDIUM' as const,
         title: 'Melhorar análise de conteúdo',
         description: 'Sistema não conseguiu ler completamente o PDF',
