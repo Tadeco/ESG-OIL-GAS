@@ -80,7 +80,16 @@ const App: React.FC = () => {
     // LIMPAR RESULTADOS DE ANÁLISE ESG AO FAZER LOGOUT
     mockApi.clearSavedResults();
     
-    console.log('💪 LOGOUT REALIZADO - DADOS LIMPOS');
+    // LIMPAR LISTA DE CONTRATOS UPLOADADOS
+    localStorage.removeItem('all-contracts');
+    localStorage.removeItem('email-logs');
+    sessionStorage.removeItem('uploaded-files');
+    sessionStorage.removeItem('esg-session-results');
+    
+    console.log('💪 LOGOUT REALIZADO - TODOS OS DADOS LIMPOS');
+    console.log('  📋 Lista de contratos limpa');
+    console.log('  📧 Logs de email limpos'); 
+    console.log('  📁 Arquivos da sessão limpos');
     setCurrentRoute('login');
   };
 
@@ -162,48 +171,162 @@ const App: React.FC = () => {
               </button>
             </div>
             
-            {/* Lista de contratos mockada */}
+            {/* Lista de contratos DINÂMICA - Inclui uploads */}
             <div className={`rounded-lg p-6 ${
               theme === 'dark' ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'
             }`}>
-              <h3 className="text-lg font-semibold mb-4">Contratos Recentes</h3>
-              <div className="space-y-3">
-                {[
-                  { id: 'contract-001', name: 'Shell-Upstream-Brazil-2024.pdf', status: 'Analisado', score: 78.5 },
-                  { id: 'contract-002', name: 'Petrobras-Partnership-Agreement.pdf', status: 'Analisado', score: 85.2 }
-                ].map((contract) => (
-                  <div key={contract.id} className={`p-4 rounded-lg border ${
-                    theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
-                  }`}>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-medium">{contract.name}</h4>
-                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                          Status: {contract.status}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {contract.score && (
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            contract.score >= 80 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
-                            contract.score >= 60 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                            'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                          }`}>
-                            Score: {contract.score}
-                          </span>
-                        )}
-                        {contract.status === 'Analisado' && (
-                          <button
-                            onClick={() => handleNavigate(`/analysis/${contract.id}`)}
-                            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-colors"
-                          >
-                            Ver Análise
-                          </button>
-                        )}
-                      </div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">📋 Todos os Contratos</h3>
+                {(() => {
+                  const sessionFiles = JSON.parse(sessionStorage.getItem('uploaded-files') || '[]');
+                  const savedContracts = JSON.parse(localStorage.getItem('all-contracts') || '[]');
+                  const totalUploads = sessionFiles.length + savedContracts.filter((c: any) => c.isUploaded).length;
+                  
+                  if (totalUploads > 0) {
+                    return (
+                      <span className="px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded-full text-sm font-medium">
+                        📤 {totalUploads} uploads realizados
+                      </span>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+              
+              {(() => {
+                // Carregar TODOS os contratos de todas as fontes
+                const sessionFiles = JSON.parse(sessionStorage.getItem('uploaded-files') || '[]');
+                const sessionResults = JSON.parse(sessionStorage.getItem('esg-session-results') || '{}');
+                const savedResults = JSON.parse(localStorage.getItem('esg-analysis-results') || '{}');
+                const savedContracts = JSON.parse(localStorage.getItem('all-contracts') || '[]');
+                
+                console.log('📋 CARREGANDO CONTRATOS DE TODAS AS FONTES:');
+                console.log('  📁 Session files:', sessionFiles.length);
+                console.log('  📊 Session results:', Object.keys(sessionResults).length);
+                console.log('  💾 Saved results:', Object.keys(savedResults).length);
+                console.log('  📋 Saved contracts:', savedContracts.length);
+                
+                // Combinar resultados de análise
+                const allResults = { ...savedResults, ...sessionResults };
+                
+                // Contratos fixos (exemplo/demonstração)
+                const staticContracts = [
+                  { id: 'contract-001', name: 'Shell-Upstream-Brazil-2024.pdf', status: 'Analisado', score: 78.5, uploadDate: '2024-01-15', isUploaded: false },
+                  { id: 'contract-002', name: 'Petrobras-Partnership-Agreement.pdf', status: 'Analisado', score: 85.2, uploadDate: '2024-01-12', isUploaded: false }
+                ];
+                
+                // Contratos da sessão atual (uploads recentes)
+                const sessionContracts = sessionFiles.map((fileData: any) => {
+                  const result = allResults[fileData.contractId];
+                  return {
+                    id: fileData.contractId,
+                    name: fileData.name,
+                    status: result ? 'Analisado' : 'Processando',
+                    score: result?.overallScore || fileData.score || null,
+                    uploadDate: fileData.uploadDate,
+                    isUploaded: true,
+                    userEmail: fileData.userEmail,
+                    userName: fileData.userName
+                  };
+                });
+                
+                // Contratos salvos no localStorage (persistem entre sessões)
+                const persistentContracts = savedContracts.map((contract: any) => ({
+                  ...contract,
+                  isUploaded: contract.isUploaded || true // Marca como upload se não especificado
+                }));
+                
+                // Combinar TODOS os contratos e remover duplicatas
+                const contractMap = new Map();
+                
+                // Adicionar contratos estáticos
+                staticContracts.forEach(contract => contractMap.set(contract.id, contract));
+                
+                // Adicionar contratos persistentes (sobrescreve duplicatas)
+                persistentContracts.forEach(contract => contractMap.set(contract.id, contract));
+                
+                // Adicionar contratos da sessão (sobrescreve duplicatas com dados mais recentes)
+                sessionContracts.forEach(contract => contractMap.set(contract.id, contract));
+                
+                // Converter para array e ordenar por data
+                const allContracts = Array.from(contractMap.values()).sort((a, b) => 
+                  new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()
+                );
+                
+                console.log('✅ CONTRATOS FINAIS CARREGADOS:', allContracts.length);
+                console.log('  📤 Uploads do usuário:', allContracts.filter(c => c.isUploaded).length);
+                console.log('  📋 Contratos exemplo:', allContracts.filter(c => !c.isUploaded).length);
+                
+                if (allContracts.length === 0) {
+                  return (
+                    <div className="text-center py-8">
+                      <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
+                        Nenhum contrato disponível. Faça upload de contratos para começar.
+                      </p>
+                      <button
+                        onClick={() => handleNavigate('/upload')}
+                        className="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                      >
+                        Fazer Upload
+                      </button>
                     </div>
+                  );
+                }
+                
+                return (
+                  <div className="space-y-3">
+                      <div key={contract.id} className={`p-4 rounded-lg border ${
+                        theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+                      } ${contract.isUploaded ? 'border-l-4 border-l-green-500' : ''}`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-medium">{contract.name}</h4>
+                              {contract.isUploaded && (
+                                <span className="px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded-full">
+                                  📤 Upload
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-4 mt-1">
+                              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                Status: {contract.status}
+                              </p>
+                              <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                📅 {new Date(contract.uploadDate).toLocaleDateString('pt-BR')}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            {contract.score && (
+                              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                contract.score >= 80 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' :
+                                contract.score >= 60 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                                'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                              }`}>
+                                Score: {contract.score}
+                              </span>
+                            )}
+                            {contract.score && (
+                              <button
+                                onClick={() => handleNavigate(`/analysis/${contract.id}`)}
+                                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-colors"
+                              >
+                                Ver Análise
+                              </button>
+                            )}
+                            {contract.status === 'Processando' && (
+                              <span className="px-3 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 rounded text-sm">
+                                ⏳ Processando...
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                );
+              })()}
               </div>
             </div>
           </div>

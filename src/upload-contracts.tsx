@@ -231,23 +231,57 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
           console.error('📊 Resultado recebido:', analysisResult);
         }
         
-        // SALVAR PDF NA SESSÃO PARA PERSISTIR ATÉ FECHAR NAVEGADOR
-        const fileData = {
+        // SALVAR CONTRATO COMPLETO NA SESSÃO E LISTA DE CONTRATOS
+        const contractData = {
           name: file.name,
           size: file.size,
           type: file.type,
           lastModified: file.lastModified,
           contractId: uploadResult.contractId,
-          uploadDate: new Date().toISOString()
+          uploadDate: new Date().toISOString(),
+          status: 'completed',
+          score: analysisResult?.overallScore || null,
+          userEmail: user?.email,
+          userName: user?.name
         };
         
-        // Salvar metadados do arquivo no sessionStorage
+        // Salvar na lista de arquivos uploaded
         const sessionFiles = JSON.parse(sessionStorage.getItem('uploaded-files') || '[]');
-        sessionFiles.push(fileData);
+        // Evitar duplicatas
+        const existingIndex = sessionFiles.findIndex((f: any) => f.contractId === contractData.contractId);
+        if (existingIndex >= 0) {
+          sessionFiles[existingIndex] = contractData; // Atualizar existente
+        } else {
+          sessionFiles.push(contractData); // Adicionar novo
+        }
         sessionStorage.setItem('uploaded-files', JSON.stringify(sessionFiles));
         
-        console.log('💾 ARQUIVO SALVO NA SESSÃO:', fileData);
-        console.log('📁 Total de arquivos na sessão:', sessionFiles.length);
+        // TAMBÉM SALVAR NA LISTA GERAL DE CONTRATOS (localStorage para persistir entre sessões)
+        const allContracts = JSON.parse(localStorage.getItem('all-contracts') || '[]');
+        const contractEntry = {
+          id: contractData.contractId,
+          name: contractData.name,
+          status: 'Analisado',
+          score: contractData.score,
+          uploadDate: contractData.uploadDate,
+          isUploaded: true,
+          userEmail: contractData.userEmail,
+          userName: contractData.userName
+        };
+        
+        // Evitar duplicatas na lista geral
+        const existingContractIndex = allContracts.findIndex((c: any) => c.id === contractEntry.id);
+        if (existingContractIndex >= 0) {
+          allContracts[existingContractIndex] = contractEntry;
+        } else {
+          allContracts.push(contractEntry);
+        }
+        localStorage.setItem('all-contracts', JSON.stringify(allContracts));
+        
+        console.log('💾 CONTRATO SALVO COMPLETAMENTE:');
+        console.log('  📁 SessionStorage:', contractData);
+        console.log('  📋 Lista de contratos:', contractEntry);
+        console.log('  📊 Total contratos salvos:', allContracts.length);
         
         const updatedFile: UploadedFile = {
           file,
