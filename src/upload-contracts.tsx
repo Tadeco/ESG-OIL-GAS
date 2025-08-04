@@ -160,23 +160,49 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
         console.log('🏛️ Score Governance:', analysisResult?.categories?.governance?.score);
         console.log('🔍 Confiança:', analysisResult?.confidence);
         
-        // Garantir que o estado seja atualizado FORÇADAMENTE
-        const updatedFile = {
-          ...files.find(f => f.id === fileId)!,
-          status: 'completed' as const,
-          result: analysisResult,
-          contractId: uploadResult.contractId
+        // GARANTIR ATUALIZAÇÃO DO ESTADO COM VALIDAÇÃO
+        console.log('🔄 INICIANDO ATUALIZAÇÃO FORÇADA DO ESTADO...');
+        
+        if (!analysisResult) {
+          console.error('❌ ERRO: analysisResult é null/undefined');
+          throw new Error('Resultado da análise não recebido');
+        }
+        
+        if (!analysisResult.overallScore) {
+          console.error('❌ ERRO: analysisResult sem overallScore');
+          console.error('📊 Resultado recebido:', analysisResult);
+        }
+        
+        const updatedFile: UploadedFile = {
+          file,
+          id: fileId,
+          status: 'completed',
+          progress: 100,
+          contractId: uploadResult.contractId,
+          result: analysisResult
         };
         
-        console.log('🔄 FORÇANDO ATUALIZAÇÃO DO ESTADO...');
-        console.log('📁 Arquivo atualizado:', updatedFile);
+        console.log('📁 ARQUIVO FINAL PARA ATUALIZAÇÃO:');
+        console.log('  - ID:', updatedFile.id);
+        console.log('  - Status:', updatedFile.status);
+        console.log('  - ContractId:', updatedFile.contractId);
+        console.log('  - Tem resultado:', !!updatedFile.result);
+        console.log('  - Score:', updatedFile.result?.overallScore);
         
         setFiles(prev => {
-          const newFiles = prev.map(f => 
-            f.id === fileId ? updatedFile : f
-          );
-          console.log('📋 NOVO ESTADO DOS ARQUIVOS:', newFiles);
-          console.log('🎯 Arquivo específico atualizado:', newFiles.find(f => f.id === fileId));
+          const newFiles = prev.map(f => {
+            if (f.id === fileId) {
+              console.log('🎯 ATUALIZANDO ARQUIVO:', f.file.name);
+              return updatedFile;
+            }
+            return f;
+          });
+          
+          const updatedFileInList = newFiles.find(f => f.id === fileId);
+          console.log('✅ ARQUIVO ATUALIZADO NA LISTA:', updatedFileInList);
+          console.log('✅ Status final:', updatedFileInList?.status);
+          console.log('✅ Tem resultado final:', !!updatedFileInList?.result);
+          
           return newFiles;
         });
         
@@ -212,35 +238,49 @@ const UploadContracts: React.FC<UploadContractsProps> = ({
     setFiles(prev => prev.filter(f => f.id !== fileId));
   };
 
-  // View analysis results
+  // View analysis results - APENAS MODAL, SEM NAVEGAÇÃO
   const viewResults = (file: UploadedFile) => {
-    console.log('🔍 VISUALIZANDO RESULTADOS PARA:', file.file.name);
+    console.log('🔍 MOSTRANDO RESULTADOS - SEM REDIRECIONAMENTO');
+    console.log('📊 Arquivo:', file.file.name);
     console.log('📊 Resultado completo:', file.result);
     
     if (file.result && file.contractId) {
-      // Mostrar alert com resumo dos resultados
+      // Criar modal detalhado com os resultados
       const result = file.result;
+      const envScore = result.categories?.environmental?.score || 0;
+      const socScore = result.categories?.social?.score || 0;
+      const govScore = result.categories?.governance?.score || 0;
+      
       const message = `
-📊 ANÁLISE ESG CONCLUÍDA - ${file.file.name}
+🏢 ANÁLISE ESG COMPLETA
+━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🎯 SCORE GERAL: ${result.overallScore}/100
+📄 ARQUIVO: ${file.file.name}
+📅 DATA: ${new Date(result.uploadDate).toLocaleString('pt-BR')}
+🆔 ID: ${result.contractId}
 
-📈 SCORES DETALHADOS:
-🌱 Ambiental: ${result.categories?.environmental?.score || 'N/A'}
-👥 Social: ${result.categories?.social?.score || 'N/A'}  
-🏛️ Governança: ${result.categories?.governance?.score || 'N/A'}
+━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 SCORES ESG
 
-🔍 Confiança: ${(result.confidence * 100).toFixed(1)}%
-📅 Data: ${new Date(result.uploadDate).toLocaleString('pt-BR')}
+🎯 GERAL: ${result.overallScore}/100 ${result.overallScore >= 80 ? '🟢 EXCELENTE' : result.overallScore >= 60 ? '🟡 BOM' : '🔴 CRÍTICO'}
 
-✅ Análise baseada no conteúdo real do PDF!
+🌱 AMBIENTAL: ${envScore}/100
+👥 SOCIAL: ${socScore}/100  
+🏛️ GOVERNANÇA: ${govScore}/100
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+🔍 CONFIABILIDADE: ${(result.confidence * 100).toFixed(1)}%
+✅ Baseado no conteúdo REAL do PDF
+
+🤖 Análise realizada com IA avançada
+📋 Frameworks: GRI, SASB, TCFD, IPIECA
       `;
       
       alert(message);
-      console.log('📊 RESULTADO DETALHADO MOSTRADO AO USUÁRIO');
+      console.log('✅ RESULTADOS EXIBIDOS COM SUCESSO - USUÁRIO PERMANECE NA PÁGINA');
     } else {
-      console.log('❌ Arquivo não tem resultados ou contractId:', file);
-      alert('⚠️ Resultados não disponíveis para este arquivo');
+      console.log('❌ ERRO: Arquivo sem resultados');
+      alert(`❌ ERRO: Resultados não disponíveis para ${file.file.name}\n\nStatus: ${file.status}\nTente fazer upload novamente.`);
     }
   };
 
