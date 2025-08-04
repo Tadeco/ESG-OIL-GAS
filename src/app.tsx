@@ -26,6 +26,7 @@ const App: React.FC = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [loading, setLoading] = useState(false);
   const [contractId, setContractId] = useState<string>('');
+  const [contractsRefreshKey, setContractsRefreshKey] = useState<number>(0);
 
   // Verificar se há usuário logado no localStorage
   useEffect(() => {
@@ -160,15 +161,32 @@ const App: React.FC = () => {
                 <p className={`text-sm mt-1 ${
                   theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                 }`}>
-                  Gerencie e analise seus contratos ESG
+                  Gerencie e analise seus contratos ESG (incluindo uploads)
                 </p>
               </div>
-              <button
-                onClick={() => handleNavigate('/upload')}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-              >
-                Novo Upload
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    console.log('🔄 REFRESH MANUAL DA PÁGINA DE CONTRATOS');
+                    console.log('📊 Dados no storage:', {
+                      sessionFiles: JSON.parse(sessionStorage.getItem('uploaded-files') || '[]').length,
+                      savedContracts: JSON.parse(localStorage.getItem('all-contracts') || '[]').length,
+                      sessionResults: Object.keys(JSON.parse(sessionStorage.getItem('esg-session-results') || '{}')).length
+                    });
+                    // Forçar re-render
+                    setContractsRefreshKey(prev => prev + 1);
+                  }}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                >
+                  🔄 Atualizar Lista
+                </button>
+                <button
+                  onClick={() => handleNavigate('/upload')}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                >
+                  Novo Upload
+                </button>
+              </div>
             </div>
             
             {/* Lista de contratos DINÂMICA - Inclui uploads */}
@@ -194,6 +212,9 @@ const App: React.FC = () => {
               </div>
               
               {(() => {
+                // DEBUG: Forçar reload dos dados toda vez que a página renderizar
+                console.log('🔄 RENDERIZANDO SEÇÃO DE CONTRATOS - REFRESH KEY:', contractsRefreshKey);
+                
                 // Carregar TODOS os contratos de todas as fontes
                 const sessionFiles = JSON.parse(sessionStorage.getItem('uploaded-files') || '[]');
                 const sessionResults = JSON.parse(sessionStorage.getItem('esg-session-results') || '{}');
@@ -259,16 +280,40 @@ const App: React.FC = () => {
                 
                 if (allContracts.length === 0) {
                   return (
-                    <div className="text-center py-8">
-                      <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
-                        Nenhum contrato disponível. Faça upload de contratos para começar.
-                      </p>
-                      <button
-                        onClick={() => handleNavigate('/upload')}
-                        className="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                      >
-                        Fazer Upload
-                      </button>
+                    <div className="space-y-4">
+                      <div className="text-center py-8">
+                        <p className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
+                          Nenhum contrato disponível. Faça upload de contratos para começar.
+                        </p>
+                        <button
+                          onClick={() => handleNavigate('/upload')}
+                          className="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                          Fazer Upload
+                        </button>
+                      </div>
+                      
+                      {/* DEBUG: Mostrar dados dos storages */}
+                      <div className={`p-4 rounded-lg border ${
+                        theme === 'dark' ? 'bg-red-900/20 border-red-800/30' : 'bg-red-50 border-red-200'
+                      }`}>
+                        <h4 className="font-semibold mb-2 text-red-600 dark:text-red-400">🔍 Debug - Dados nos Storages:</h4>
+                        <div className="text-sm space-y-1">
+                          <p>📁 Session Files: {sessionFiles.length} arquivos</p>
+                          <p>📊 Session Results: {Object.keys(sessionResults).length} resultados</p>
+                          <p>💾 Saved Results: {Object.keys(savedResults).length} resultados</p>
+                          <p>📋 Saved Contracts: {savedContracts.length} contratos</p>
+                          <p>🔗 Static Contracts: {staticContracts.length} contratos</p>
+                          {sessionFiles.length > 0 && (
+                            <details>
+                              <summary>Ver arquivos da sessão:</summary>
+                              <pre className="text-xs mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded">
+                                {JSON.stringify(sessionFiles, null, 2)}
+                              </pre>
+                            </details>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   );
                 }

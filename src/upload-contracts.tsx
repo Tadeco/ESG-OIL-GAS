@@ -342,12 +342,27 @@ Em produção, seria integrado com SendGrid/AWS SES.
 
 👁️ Ver relatório completo: Clique em "Relatório Detalhado"
 🔍 Dados atualizados: Vá para "Relatórios" ou "Compliance"
+📋 CONTRATO SALVO: Vá para "Contracts" para ver na lista!
           `;
           
           // Mostrar imediatamente
           setTimeout(() => {
             alert(emailMessage);
             console.log('✅ NOTIFICAÇÃO DE EMAIL EXIBIDA');
+            
+            // Adicionar botão para ir direto aos contratos
+            const goToContracts = confirm(`
+✅ CONTRATO SALVO COM SUCESSO!
+
+Deseja ir para a seção "Contracts" para ver o contrato na lista?
+
+${updatedFile.file.name} foi adicionado aos seus contratos.
+            `);
+            
+            if (goToContracts && onNavigate) {
+              console.log('🔄 NAVEGANDO PARA CONTRACTS...');
+              onNavigate('/contracts');
+            }
           }, 500);
         }
         
